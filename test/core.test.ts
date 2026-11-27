@@ -7,7 +7,7 @@ import type { LlmClient, LlmRequest } from '../src/llm/index.js';
 import { extractJson } from '../src/llm/index.js';
 import { loadDocument } from '../src/load/index.js';
 import { handle } from '../src/mcp/server.js';
-import { check, parseAnswers } from '../src/pipeline.js';
+import { check, parseAnswerFile, parseAnswers } from '../src/pipeline.js';
 import { compareReports, renderComparison } from '../src/report/compare.js';
 import { renderMarkdown, renderQuestionsFile } from '../src/report/markdown.js';
 import { runRules } from '../src/rules/index.js';
@@ -281,12 +281,26 @@ describe('конвейер с моделью', () => {
     const answers = parseAnswers(filled);
     expect(Object.keys(answers)).toEqual([q?.id]);
     const log: string[] = [];
-    const second = await check(CASE, { client: fakeClient(log), cacheDir: null, answers });
+    const entries = parseAnswerFile(filled);
+    expect(entries).toEqual([{ id: q?.id, question: q?.text, answer: 'Нет, один push за месяц.' }]);
+    // An answer written for a different question must not land on whatever question now carries that number.
+    const stray = await check(CASE, { client: fakeClient([]), cacheDir: null, answerEntries: [{ id: q?.id ?? 'Q-01', question: 'Какой цвет у кнопки сохранения на экране настроек?', answer: 'Синий' }] });
+    expect(stray.report.answersApplied).toBeUndefined();
+    expect(stray.report.diagnostics.some((d) => d.message.includes('не применён'))).toBe(true);
+    // The same question under another number is still found by its text.
+    const second = await check(CASE, { client: fakeClient(log), cacheDir: null, answerEntries: [{ ...entries[0]!, id: 'Q-99' }] });
     expect(log).toContain('answers');
     expect(second.report.answersApplied).toMatchObject({ count: 1, resolved: 1 });
     const resolved = second.report.findings.find((f) => f.status === 'resolved');
     expect(resolved?.resolution?.proposedText).toContain('не более одного push');
     expect(second.report.summary.bySeverity.critical).toBe(first.report.summary.bySeverity.critical - 1);
+  });
+
+  it('даёт один и тот же отчёт при повторном прогоне с теми же ответами модели', async () => {
+    const strip = (r: Awaited<ReturnType<typeof check>>['report']) => JSON.stringify({ ...r, passport: { ...r.passport, durationMs: 0, date: '' } });
+    const one = await check(CASE, { client: fakeClient([]), cacheDir: null, concurrency: 1 });
+    const two = await check(CASE, { client: fakeClient([]), cacheDir: null, concurrency: 4 });
+    expect(strip(two.report)).toBe(strip(one.report));
   });
 
   it('работает без модели и честно пишет об этом', async () => {

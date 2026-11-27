@@ -58,6 +58,8 @@ export interface CheckOptions {
   concurrency?: number;
   /** Answers of the author keyed by question id (Q-01 → text). */
   answers?: Record<string, string>;
+  /** Answers read from a questions file: matched to the questions of this run by their text, not only by number. */
+  answerEntries?: AnswerEntry[];
   answersFile?: string;
   packs?: string[];
   maxQuestions?: number;
@@ -204,6 +206,37 @@ function emptyReport(passport: Report['passport'], diagnostics: Diagnostic[], he
     verdict: { code: 'not_checked', headline, rationale, fixFirst: [] },
     diagnostics,
   };
+}
+
+export interface AnswerEntry {
+  id: string;
+  /** Question text as it stood in the file the author filled in. */
+  question: string;
+  answer: string;
+}
+
+export function parseAnswerFile(markdown: string): AnswerEntry[] {
+  const out: AnswerEntry[] = [];
+  const parts = markdown.split(/^#{2,3}\s+(Q-\d+)\b.*$/m);
+  for (let i = 1; i + 1 < parts.length; i += 2) {
+    const id = parts[i];
+    const body = parts[i + 1] ?? '';
+    const answer = (/\*\*Ответ:\*\*([\s\S]*?)(?=\n-{3,}\s*\n|\n#{2,3}\s|$)/u.exec(body)?.[1] ?? '').trim();
+    const question = (/\*\*Вопрос:\*\*\s*(.+)/u.exec(body)?.[1] ?? '').trim();
+    if (id && answer !== '' && !/^[_.…\s]+$/.test(answer)) out.push({ id, question, answer });
+  }
+  return out;
+}
+
+const tokens = (t: string) => new Set(t.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').split(' ').filter((w) => w.length > 2));
+
+function sameQuestion(a: string, b: string): boolean {
+  const x = tokens(a);
+  const y = tokens(b);
+  if (x.size === 0 || y.size === 0) return false;
+  let common = 0;
+  for (const w of x) if (y.has(w)) common++;
+  return common / Math.max(x.size, y.size) >= 0.8;
 }
 
 export function parseAnswers(markdown: string): Record<string, string> {
@@ -441,6 +474,10 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
     });
 
     // --- dedupe against rules and between the two model stages ---
+    // Parallel requests finish in arbitrary order; everything downstream (opponent prompt, ids, cache keys) must not depend on it.
+    llmDrafts.sort(
+      (x, y) => (x.scope === y.scope ? 0 : x.scope === 'set' ? -1 : 1) || (x.evidence[0]?.lineStart ?? 0) - (y.evidence[0]?.lineStart ?? 0) || x.title.localeCompare(y.title, 'ru'),
+    );
     const sameTopic = (x: Criterion, y: Criterion) => x === y || FAMILY[x] === y || FAMILY[y] === x;
     const ruleLines = ruled.findings.map((f) => evidenceLines(f));
     const kept: Draft[] = [];
@@ -635,7 +672,19 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
 
   // --- answers of the author ---
   let answersApplied: Report['answersApplied'];
-  const answers = opts.answers ?? {};
+  const answers: Record<string, string> = { ...(opts.answers ?? {}) };
+  // A model may word or number the questions differently on another run; an answer is applied only to the question it was given to.
+  for (const entry of opts.answerEntries ?? []) {
+    const target = entry.question === '' ? questions.find((q) => q.id === entry.id) : (questions.find((q) => q.id === entry.id && sameQuestion(q.text, entry.question)) ?? questions.find((q) => sameQuestion(q.text, entry.question)));
+    if (target) answers[target.id] = entry.answer;
+    else
+      diagnostics.push({
+        level: 'warning',
+        code: 'note',
+        message: `Ответ на ${entry.id} не применён: в этом прогоне нет вопроса с такой формулировкой («${entry.question.slice(0, 90)}»).`,
+        hint: 'Запустите агента с тем же кэшем и той же моделью, что и при формировании файла вопросов, или обновите файл вопросов.',
+      });
+  }
   const answered = questions.filter((q) => answers[q.id]);
   if (answered.length > 0) {
     for (const q of answered) q.answer = answers[q.id] ?? '';

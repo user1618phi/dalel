@@ -260,7 +260,12 @@ export class LlmCache {
   }
   set(key: string, value: LlmResponse): void {
     if (!this.dir || !this.enabled) return;
-    writeFileSync(this.file(key), JSON.stringify(value));
+    try {
+      mkdirSync(this.dir, { recursive: true });
+      writeFileSync(this.file(key), JSON.stringify(value));
+    } catch {
+      // The cache is an optimisation: failing to write it must never cost the user a model answer.
+    }
   }
 }
 

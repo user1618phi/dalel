@@ -4,7 +4,7 @@ import { dirname, extname, join, resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
 import { PROVIDER_HELP, createClient } from './llm/index.js';
-import { type CheckOptions, agentVersion, check, parseAnswers } from './pipeline.js';
+import { type AnswerEntry, type CheckOptions, agentVersion, check, parseAnswerFile } from './pipeline.js';
 import { renderMarkdown, renderQuestionsFile } from './report/markdown.js';
 import { renderFeature } from './stages/testcases.js';
 import type { Report, SourceDoc } from './types.js';
@@ -193,12 +193,13 @@ async function main(): Promise<number> {
   if (!client && !args.flags.has('no-llm')) log('ключ модели не найден — выполняю только детерминированные правила (см. --help)');
   else if (client) log(`модель: ${client.model} (${client.provider})`);
 
-  let answers: Record<string, string> = {};
+  const answers: Record<string, string> = {};
+  let answerEntries: AnswerEntry[] = [];
   const answersFile = str('answers');
   if (answersFile) {
     if (!existsSync(answersFile)) throw new Error(`Файл ответов не найден: ${answersFile}`);
-    answers = parseAnswers(readFileSync(answersFile, 'utf8'));
-    log(`ответов автора: ${Object.keys(answers).length}`);
+    answerEntries = parseAnswerFile(readFileSync(answersFile, 'utf8'));
+    log(`ответов автора: ${answerEntries.length}`);
   }
   const packs = str('packs');
   const options: CheckOptions = {
@@ -206,6 +207,7 @@ async function main(): Promise<number> {
     useCache: !args.flags.has('no-cache'),
     redact: !args.flags.has('no-redact'),
     answers,
+    answerEntries,
     ...(answersFile ? { answersFile } : {}),
     ...(packs ? { packs: packs.split(',').map((s) => s.trim()) } : {}),
     onProgress: log,
