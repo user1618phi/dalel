@@ -12,6 +12,7 @@ import {
   SEVERITY_LABEL,
   type Severity,
 } from '../types.js';
+import { formatDuration, formatInt, truncate } from './html.js';
 
 const RISK_LEVEL: Record<string, string> = { high: 'высокий', medium: 'средний', low: 'низкий' };
 const RISK_KIND: Record<string, string> = {
@@ -64,11 +65,24 @@ function reqLabel(r: Requirement | undefined, id: string): string {
 }
 
 function quoteBlock(f: Finding, reqs: Map<string, Requirement>): string[] {
-  return f.evidence.map((e) => {
+  // Consecutive «>» lines merge into one paragraph: quotes would run together, and a stray backtick in one quote
+  // would open a code span that ends in the next. A bare «>» line keeps each quote its own paragraph.
+  return f.evidence.flatMap((e, i) => {
     const r = e.requirementId ? reqs.get(e.requirementId) : undefined;
     const page = r?.page ? `, с. ${r.page}` : '';
-    return `> «${e.quote.replace(/\n/g, ' ')}» — строка ${lines(e.lineStart, e.lineEnd)}${page}${e.requirementId ? `, ${reqLabel(r, e.requirementId)}` : ''}`;
+    const line = `> «${e.quote.replace(/\n/g, ' ')}» — строка ${lines(e.lineStart, e.lineEnd)}${page}${e.requirementId ? `, ${reqLabel(r, e.requirementId)}` : ''}`;
+    return i === 0 ? [line] : ['>', line];
   });
+}
+
+/** Given/when/then steps as one table cell: each step ends as a sentence so the steps do not run together. */
+function steps(parts: string[]): string {
+  return parts.map((x) => (/[.!?…;]$/.test(x.trim()) ? x.trim() : `${x.trim()}.`)).join(' ');
+}
+
+function lowerFirst(s: string): string {
+  // «По этому…» → «по этому…», but an abbreviation such as «API» keeps its case.
+  return /^\p{Lu}\p{Ll}/u.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s;
 }
 
 function findingCard(f: Finding, reqs: Map<string, Requirement>): string[] {
@@ -94,7 +108,6 @@ function findingCard(f: Finding, reqs: Map<string, Requirement>): string[] {
     out.push('');
     out.push(`**Контрпример**${c.arithmeticChecked ? ' (арифметика пересчитана кодом)' : ''}`);
     out.push('');
-    const steps = (parts: string[]) => parts.map((x) => (/[.!?…;]$/.test(x.trim()) ? x.trim() : `${x.trim()}.`)).join(' ');
     if (c.given.length > 0) out.push(`- Дано: ${steps(c.given)}`);
     if (c.when.length > 0) out.push(`- Когда: ${steps(c.when)}`);
     for (const x of c.expectations) out.push(`- ${reqLabel(reqs.get(x.requirementId), x.requirementId)} требует: ${x.expected}`);
@@ -120,7 +133,7 @@ function findingCard(f: Finding, reqs: Map<string, Requirement>): string[] {
   return out;
 }
 
-export function questionBlock(q: Question, withAnswerSlot: boolean): string[] {
+export function questionBlock(q: Question, withAnswerSlot: boolean, findingTitles: ReadonlySet<string> = new Set()): string[] {
   const out: string[] = [];
   out.push(`### ${q.id}${q.followUpOf ? ` · уточнение к ${q.followUpOf}` : ''}${q.blocking ? ' · блокирует разработку' : ''} · риск ${RISK_LEVEL[q.risk.level] ?? q.risk.level} (${RISK_KIND[q.risk.kind] ?? q.risk.kind})`);
   out.push('');
@@ -133,7 +146,8 @@ export function questionBlock(q: Question, withAnswerSlot: boolean): string[] {
     out.push('');
   }
   if (q.why) out.push(`**Зачем:** ${q.why}`);
-  if (q.risk.note && q.risk.note !== q.why) out.push(`\n**Цена ошибки:** ${q.risk.note}`);
+  // A rule-pack question falls back to its finding's title as the risk note; that says nothing about the cost.
+  if (q.risk.note && q.risk.note !== q.why && !findingTitles.has(q.risk.note)) out.push(`\n**Цена ошибки:** ${q.risk.note}`);
   out.push('');
   const withTests = q.options.some((o) => o.test);
   out.push(`| Вариант ответа | Что это меняет |${withTests ? ' Тест, если так |' : ''}`);
@@ -163,7 +177,7 @@ export function renderMarkdown(report: Report): string {
 
   out.push(`# Отчёт о проверке требований: ${p.documentName}`);
   out.push('');
-  out.push(`**Итог: ${report.verdict.headline}.** ${report.verdict.rationale}`);
+  out.push(`**Итог: ${lowerFirst(report.verdict.headline)}.** ${report.verdict.rationale}`);
   out.push('');
   out.push(
     `Пунктов в документе: ${s.units}, из них требований: ${s.requirements}. Замечаний: ${s.findings} (критичных ${s.bySeverity.critical}, существенных ${s.bySeverity.major}, незначительных ${s.bySeverity.minor}). Вопросов автору: ${s.questions}, блокирующих: ${s.blockingQuestions}.`,
@@ -171,6 +185,10 @@ export function renderMarkdown(report: Report): string {
   out.push('');
   out.push('Каждое замечание опирается на дословную цитату документа с номером строки; цитаты сверены с текстом программно.');
   out.push('');
+  if (report.requirements.length > 0) {
+    out.push('Разделы: 1. Паспорт прогона · 2. Как агент нарезал требования · 3. Проверка каждого требования · 4. Проверка всего набора требований · 5. Вопросы автору · 6. Сводка · 7. Итог · Приложение.');
+    out.push('');
+  }
   if (report.verdict.fixFirst.length > 0 || report.questions.some((q) => q.blocking)) {
     out.push('### Главное за минуту');
     out.push('');
@@ -220,8 +238,8 @@ export function renderMarkdown(report: Report): string {
   out.push(`| Версия агента | Dalel ${p.agentVersion}, коммит ${p.agentCommit} |`);
   out.push(`| Пакеты правил | ${p.rulePacks.join(', ')} |`);
   out.push(`| Хэш промптов | \`${p.promptHash}\` |`);
-  out.push(`| Обращений к модели | ${p.llmCalls} новых, ${p.llmCacheHits} из кэша; токенов: ${p.tokensIn} на вход, ${p.tokensOut} на выход |`);
-  out.push(`| Длительность | ${(p.durationMs / 1000).toFixed(1)} с |`);
+  out.push(`| Обращений к модели | ${p.llmCalls} новых, ${p.llmCacheHits} из кэша; токенов: ${formatInt(p.tokensIn)} на вход, ${formatInt(p.tokensOut)} на выход |`);
+  out.push(`| Длительность | ${formatDuration(p.durationMs)} |`);
   out.push('');
 
   if (report.requirements.length === 0) {
@@ -238,10 +256,11 @@ export function renderMarkdown(report: Report): string {
   out.push('');
   out.push('Границы пунктов определяет структура документа (пункт списка, абзац, строка таблицы, блок примера), а не модель, поэтому нарезка одинакова при каждом прогоне. Пункты вида «реквизит документа», «незаполненный шаблон» и «контекст» перечислены, но в число требований не входят.');
   out.push('');
-  out.push('| Идентификатор в отчёте | Идентификатор в документе | Строки | Вид | Краткая формулировка |');
-  out.push('| :--- | :--- | :--- | :--- | :--- |');
+  // The task asks to keep the quote when the document has no numbers of its own; the summary alone is a paraphrase.
+  out.push('| Идентификатор в отчёте | Идентификатор в документе | Строки | Вид | Краткая формулировка | Цитата из документа |');
+  out.push('| :--- | :--- | :--- | :--- | :--- | :--- |');
   for (const r of report.requirements) {
-    out.push(`| ${r.id} | ${r.docId ?? '—'} | ${lines(r.lineStart, r.lineEnd)} | ${KIND_LABEL[r.kind]} | ${cell(r.summary)} |`);
+    out.push(`| ${r.id} | ${r.docId ?? '—'} | ${lines(r.lineStart, r.lineEnd)} | ${KIND_LABEL[r.kind]} | ${cell(r.summary)} | «${cell(truncate(r.text.replace(/\s+/g, ' ').trim(), 160))}» |`);
   }
   out.push('');
 
@@ -250,7 +269,7 @@ export function renderMarkdown(report: Report): string {
   const llm = p.mode === 'rules+llm';
   const okMark = llm ? '✓' : '';
   out.push(
-    `Обозначения: «✗✗» — критичное замечание, «✗» — существенное, «·» — незначительное, ${llm ? '«✓» — замечаний по характеристике нет' : 'пусто — правила замечаний не нашли (смысловая проверка моделью не выполнялась)'}. Характеристики — ISO/IEC/IEEE 29148:2018 §5.2.5. В столбце «В составе набора» — замечания к набору требований (раздел 4), которые затрагивают этот пункт.`,
+    `Обозначения: «✗✗» — критичное замечание, «✗» — существенное, «·» — незначительное, ${llm ? '«✓» — замечаний по характеристике нет' : 'пусто — правила замечаний не нашли (смысловая проверка моделью не выполнялась)'}. Характеристики — ISO/IEC/IEEE 29148:2018 §5.2.5. В столбце «В составе набора» — замечания к набору требований (раздел 4), которые затрагивают этот пункт; если такое замечание касается характеристики отдельного требования, оно отмечено и в её ячейке.`,
   );
   out.push('');
   out.push(`| Пункт | ${REQUIREMENT_CRITERIA.map((c) => CRIT_SHORT[c]).join(' | ')} | Замечания к пункту | В составе набора |`);
@@ -262,8 +281,10 @@ export function renderMarkdown(report: Report): string {
     if (NON_REQUIREMENT_KINDS.has(r.kind)) continue;
     const mine = perReq.filter((f) => f.requirementIds.includes(r.id));
     const inSet = perSet.filter((f) => f.requirementIds.includes(r.id));
+    // A set-level finding may still name a characteristic of a single requirement (a GET that changes state is
+    // «Correct» for every item it cites); its cell must not show ✓.
     const cells = REQUIREMENT_CRITERIA.map((c) => {
-      const hit = mine.filter((f) => f.criterion === c).sort((x, y) => rank[x.severity] - rank[y.severity])[0];
+      const hit = [...mine, ...inSet].filter((f) => f.criterion === c).sort((x, y) => rank[x.severity] - rank[y.severity])[0];
       return hit ? MARK[hit.severity] : okMark;
     });
     out.push(`| ${reqLabel(r, r.id)} | ${cells.join(' | ')} | ${mine.map((f) => f.id).join(', ') || '—'} | ${inSet.map((f) => f.id).join(', ') || '—'} |`);
@@ -292,7 +313,7 @@ export function renderMarkdown(report: Report): string {
     out.push(`| ${CRITERION_LABEL[c]} | ${n('critical')} | ${n('major')} | ${n('minor')} | ${mine.map((f) => f.id).join(', ') || 'нет'} |`);
   }
   const other = setFindings.filter((f) => !SET_CRITERIA.includes(f.criterion));
-  if (other.length > 0) out.push(`| Прочее | ${other.filter((f) => f.severity === 'critical').length} | ${other.filter((f) => f.severity === 'major').length} | ${other.filter((f) => f.severity === 'minor').length} | ${other.map((f) => f.id).join(', ')} |`);
+  if (other.length > 0) out.push(`| Свойства отдельных требований (§5.2.5) | ${other.filter((f) => f.severity === 'critical').length} | ${other.filter((f) => f.severity === 'major').length} | ${other.filter((f) => f.severity === 'minor').length} | ${other.map((f) => f.id).join(', ')} |`);
   out.push('');
   const setDetailed = setFindings.filter((f) => f.severity !== 'minor');
   for (const f of setDetailed) out.push(...findingCard(f, reqs));
@@ -329,7 +350,7 @@ export function renderMarkdown(report: Report): string {
     out.push('| № | Тип | Пункты | Дано | Когда | Тогда | В приёмке документа |');
     out.push('| :--- | :--- | :--- | :--- | :--- | :--- | :---: |');
     for (const t of tcs) {
-      out.push(`| ${t.id} | ${kind[t.kind]}${t.findingId ? ` (${t.findingId})` : ''} | ${t.requirementIds.join(', ') || '—'} | ${cell(t.given.join(' '))} | ${cell(t.when.join(' '))} | ${cell(t.then.join(' '))} | ${t.coveredByAcceptance ? 'да' : 'нет'} |`);
+      out.push(`| ${t.id} | ${kind[t.kind]}${t.findingId ? ` (${t.findingId})` : ''} | ${t.requirementIds.join(', ') || '—'} | ${cell(steps(t.given))} | ${cell(steps(t.when))} | ${cell(steps(t.then))} | ${t.coveredByAcceptance ? 'да' : 'нет'} |`);
     }
     out.push('');
   }
@@ -357,7 +378,10 @@ export function renderMarkdown(report: Report): string {
       out.push(`Учтено ответов автора: ${report.answersApplied.count}; закрыто находок: ${report.answersApplied.resolved}.`);
       out.push('');
     }
-    for (const q of report.questions) out.push(...questionBlock(q, false));
+    for (const q of report.questions) {
+      const titles = new Set(report.findings.filter((f) => q.findingIds.includes(f.id)).map((f) => f.title));
+      out.push(...questionBlock(q, false, titles));
+    }
   }
 
   out.push('## 6. Сводка');
@@ -383,7 +407,13 @@ export function renderMarkdown(report: Report): string {
   out.push('### Критичные дефекты');
   out.push('');
   if (s.critical.length === 0) out.push('Критичных дефектов нет.');
-  for (const c of s.critical) out.push(`- **${c.findingId}** — ${c.title} (${c.requirementIds.map((id) => reqLabel(reqs.get(id), id)).join(', ') || 'набор в целом'})`);
+  const byId = new Map(report.findings.map((f) => [f.id, f]));
+  for (const c of s.critical) {
+    const f = byId.get(c.findingId);
+    // The characteristic says what kind of defect it is: inconsistent, incomplete, unverifiable…
+    const kind = f ? `; характеристика: ${CRITERION_LABEL[f.criterion].toLowerCase()}` : '';
+    out.push(`- **${c.findingId}** — ${c.title} (${c.requirementIds.map((id) => reqLabel(reqs.get(id), id)).join(', ') || 'набор в целом'}${kind})`);
+  }
   out.push('');
 
   out.push('## 7. Итог');
@@ -448,7 +478,8 @@ export function renderQuestionsFile(report: Report): string {
   out.push('Впишите ответ после метки «**Ответ:**» под нужным вопросом и передайте файл агенту: `--answers <этот файл>`. Вопросы без ответа останутся открытыми.');
   out.push('');
   for (const q of report.questions) {
-    out.push(...questionBlock(q, true).map((l) => (l.startsWith('### ') ? `## ${l.slice(4)}` : l)));
+    const titles = new Set(report.findings.filter((f) => q.findingIds.includes(f.id)).map((f) => f.title));
+    out.push(...questionBlock(q, true, titles).map((l) => (l.startsWith('### ') ? `## ${l.slice(4)}` : l)));
     out.push('---');
     out.push('');
   }

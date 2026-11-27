@@ -29,6 +29,8 @@ export interface RecallResult {
   chars: number;
   rows: { severity: string; total: number; covered: number; partial: number }[];
   missing: string[];
+  /** Verdict per catalogue entry: the detail behind the totals. */
+  verdicts: Record<string, { verdict: string; where: string }>;
 }
 
 /** Semantic recall: a judge model decides, entry by entry, whether a report states each catalogued defect. Works on any text report. */
@@ -38,6 +40,7 @@ export async function judgeRecall(client: LlmClient, reportText: string, gold: G
   for (let i = 0; i < real.length; i += 25) batches.push(real.slice(i, i + 25));
   const usage: LlmUsage = { calls: 0, cacheHits: 0, tokensIn: 0, tokensOut: 0 };
   const verdicts = new Map<string, string>();
+  const where = new Map<string, string>();
   // Very long reports are cut: the judge must see the same amount of any team's text at most.
   const text = reportText.slice(0, 400_000);
   await mapLimit(batches, 3, async (batch) => {
@@ -47,6 +50,7 @@ export async function judgeRecall(client: LlmClient, reportText: string, gold: G
       if (!batch.some((g) => g.id === v.id)) continue;
       const k = v.verdict.toLowerCase();
       verdicts.set(v.id, k.startsWith('cov') ? 'covered' : k.startsWith('part') ? 'partial' : 'missing');
+      where.set(v.id, v.where);
     }
   });
   const order = ['critical', 'major', 'minor'];
@@ -54,7 +58,13 @@ export async function judgeRecall(client: LlmClient, reportText: string, gold: G
     const list = real.filter((g) => g.severity === severity);
     return { severity, total: list.length, covered: list.filter((g) => verdicts.get(g.id) === 'covered').length, partial: list.filter((g) => verdicts.get(g.id) === 'partial').length };
   });
-  return { name, chars: reportText.length, rows, missing: real.filter((g) => g.severity !== 'minor' && (verdicts.get(g.id) ?? 'missing') === 'missing').map((g) => g.id) };
+  return {
+    name,
+    chars: reportText.length,
+    rows,
+    missing: real.filter((g) => g.severity !== 'minor' && (verdicts.get(g.id) ?? 'missing') === 'missing').map((g) => g.id),
+    verdicts: Object.fromEntries(real.map((g) => [g.id, { verdict: verdicts.get(g.id) ?? 'missing', where: where.get(g.id) ?? '' }])),
+  };
 }
 
 export async function runRecall(client: LlmClient, files: string[], goldPath: string, out: string, log: (m: string) => void): Promise<number> {
@@ -85,6 +95,17 @@ export async function runRecall(client: LlmClient, files: string[], goldPath: st
   md.push('| :--- | :---: | :---: | :---: | :---: | :--- |');
   for (const r of results.sort((a, b) => (b.rows[1]?.covered ?? 0) - (a.rows[1]?.covered ?? 0))) {
     md.push(`| ${r.name} | ${Math.round(r.chars / 1000)} | ${cell(r, 'critical')} | ${cell(r, 'major')} | ${cell(r, 'minor')} | ${r.missing.join(', ') || 'нет'} |`);
+  }
+  md.push('');
+  md.push('## По записям каталога');
+  md.push('');
+  md.push('«да» — дефект назван, «частично» — названа близкая проблема, «нет» — в отчёте его нет. Критичные и существенные записи.');
+  md.push('');
+  md.push(`| Запись | ${results.map((r) => r.name).join(' | ')} | Суть |`);
+  md.push(`| :--- | ${results.map(() => ':---:').join(' | ')} | :--- |`);
+  const word: Record<string, string> = { covered: 'да', partial: 'частично', missing: 'нет' };
+  for (const g of gold.filter((x) => /REAL/i.test(x.verdict) && x.severity !== 'minor')) {
+    md.push(`| ${g.id} | ${results.map((r) => word[r.verdicts[g.id]?.verdict ?? 'missing']).join(' | ')} | ${g.statement.replace(/\|/g, '/').slice(0, 150)} |`);
   }
   md.push('');
   const outPath = resolve(out);

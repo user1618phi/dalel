@@ -4,6 +4,7 @@ import { extractText, extractTextItems } from 'unpdf';
 import { describe, expect, it } from 'vitest';
 import { renderHtml } from '../src/report/html.js';
 import { KIT_CSS } from '../src/report/kit.js';
+import { renderMarkdown } from '../src/report/markdown.js';
 import { renderPdf } from '../src/report/pdf.js';
 import { renderSarif } from '../src/report/sarif.js';
 import { sampleDoc, sampleReport } from './fixtures/sample-report.js';
@@ -308,4 +309,38 @@ describe('renderSarif', () => {
     expect(uri).toMatch(/^file:\/\/\/tmp\/[%0-9A-Fa-f.v/md]+$/);
     expect(decodeURI(uri ?? '')).toBe('file:///tmp/мои документы/ТЗ v2.md');
   });
+});
+
+describe('renderMarkdown', () => {
+  it('keeps each quote of a finding in its own blockquote paragraph', () => {
+    const md = renderMarkdown(sampleReport());
+    expect(md).toMatch(/> «Суточный лимит[^\n]*\n>\n> «до трёх переводов/);
+  });
+
+  it('marks a set-level finding in the cell of the single-requirement characteristic it names', () => {
+    const report = sampleReport();
+    const [setLevel] = report.findings;
+    if (!setLevel) throw new Error('fixture is too small');
+    setLevel.criterion = 'correct';
+    const row = renderMarkdown(report)
+      .split('\n')
+      .find((line) => line.startsWith('| R-003') && line.includes('✓'));
+    expect(row?.split('|').map((c) => c.trim())).toContain('✗✗');
+  });
+});
+
+describe('renderPdf passport and appendix', () => {
+  it('prints the full document hash and counts duplicate rejections instead of listing them', async () => {
+    const report = sampleReport();
+    const [kept] = report.rejected;
+    if (!kept) throw new Error('fixture has no rejected finding');
+    report.rejected.push({ ...kept, id: 'D-099', title: 'Повтор', opponent: { verdict: 'reject', reason: 'Дубликат D-001.' } });
+    const pdf = await renderPdf(report);
+    const { text } = await extractText(new Uint8Array(pdf), { mergePages: true });
+    const flat = text.replace(/\s+/g, ' ');
+    expect(flat).toContain(report.passport.documentSha256);
+    expect(flat).toContain('Как повторы других замечаний сняты 1');
+    expect(flat).toContain(kept.id);
+    expect(flat).not.toContain('D-099');
+  }, 30_000);
 });

@@ -365,7 +365,8 @@ function passportSection(ctx: Ctx, index: number): Content[] {
   const mono = (value: string): Content => ({ text: clean(value), font: 'DejaVuMono', fontSize: 8.5 });
   const rows: TableCell[][] = [
     [label('документ'), body(p.documentName)],
-    [label('sha-256'), mono(shortHash(p.documentSha256))],
+    // In full: the passport is where a reader checks that the report is about the issued document.
+    [label('sha-256'), mono(p.documentSha256 || '—')],
     [label('формат'), mono(p.documentFormat)],
     [label('строк'), mono(formatInt(p.documentLines))],
     [label('дата'), mono(formatDate(p.date))],
@@ -740,7 +741,8 @@ function appendixSection(ctx: Ctx, index: number): Content[] {
       ];
     });
     content.push(
-      table([34, 54, 68, '*', 34, 128], ['id', 'требование', 'характеристика', 'замечание', 'строки', 'рекомендация'], rows, {
+      // 84: «Непротиворечивость набора» and «Ранжированность» fit without breaking inside the word.
+      table([34, 54, 84, '*', 34, 116], ['id', 'требование', 'характеристика', 'замечание', 'строки', 'рекомендация'], rows, {
         fontSize: 7.5,
       }),
     );
@@ -753,7 +755,18 @@ function appendixSection(ctx: Ctx, index: number): Content[] {
     }),
   );
   if (rejected.length === 0) content.push(empty('Оппонент не отклонил ни одной находки.'));
+  // Same rule as the Markdown report: repeats of a kept finding are counted, not listed one by one.
+  const duplicates = rejected.filter((finding) => /^\s*дубликат/iu.test(finding.opponent?.reason ?? ''));
+  if (duplicates.length > 0) {
+    content.push(
+      body(`Как повторы других замечаний сняты ${formatInt(duplicates.length)}; они не перечисляются. Остальные отклонённые замечания — с причиной:`, {
+        color: MUTED,
+        margin: [0, 4, 0, 0],
+      }),
+    );
+  }
   for (const finding of rejected) {
+    if (duplicates.includes(finding)) continue;
     const meta = [finding.id, STATUS_LABEL.rejected, CRITERION_LABEL[finding.criterion].toLowerCase()];
     if (finding.requirementIds.length > 0) meta.push(finding.requirementIds.map((id) => requirementName(ctx, id)).join(', '));
     content.push({
