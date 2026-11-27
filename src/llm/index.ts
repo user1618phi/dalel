@@ -34,7 +34,7 @@ export interface LlmUsage {
   tokensOut: number;
 }
 
-export type ProviderName = 'gemini' | 'openai' | 'anthropic' | 'ollama' | 'claude-cli';
+export type ProviderName = 'gemini' | 'openai' | 'anthropic' | 'ollama' | 'claude-cli' | 'cli';
 
 export interface LlmConfig {
   provider?: string;
@@ -215,12 +215,63 @@ function claudeCliClient(model: string): LlmClient {
   return client;
 }
 
+/** Splits a command line into arguments, honouring single and double quotes; no shell is involved. */
+export function splitCommand(command: string): string[] {
+  const out: string[] = [];
+  const re = /"((?:[^"\\]|\\.)*)"|'([^']*)'|(\S+)/g;
+  for (const m of command.matchAll(re)) out.push(m[1] !== undefined ? m[1].replace(/\\(.)/g, '$1') : (m[2] ?? m[3] ?? ''));
+  return out;
+}
+
+/**
+ * Any program that reads a prompt on standard input and prints the answer: a local model runner
+ * (`ollama run …`) or another agent's command-line tool. Started without a shell.
+ */
+function commandClient(command: string, label: string): LlmClient {
+  const argv = splitCommand(command);
+  const program = argv[0];
+  if (!program) throw new Error('DALEL_CLI_CMD пуст: укажите команду, которая читает запрос из стандартного ввода и печатает ответ.');
+  return {
+    provider: 'cli',
+    model: label,
+    cacheId: `cli:${command}`,
+    complete(req) {
+      return new Promise<LlmResponse>((resolve, reject) => {
+        const child = spawn(program, argv.slice(1), { stdio: ['pipe', 'pipe', 'pipe'] });
+        let out = '';
+        let err = '';
+        const timer = setTimeout(() => {
+          child.kill('SIGKILL');
+          reject(new Error(`Команда «${program}» не ответила за отведённое время`));
+        }, TIMEOUT_MS * 2);
+        child.stdout.on('data', (d: Buffer) => (out += d.toString('utf8')));
+        child.stderr.on('data', (d: Buffer) => (err += d.toString('utf8')));
+        child.on('error', (e) => {
+          clearTimeout(timer);
+          reject(new Error(`Не удалось запустить «${program}»: ${e.message}`));
+        });
+        child.on('close', (code) => {
+          clearTimeout(timer);
+          if (code !== 0) return reject(new Error(`Команда «${program}» завершилась с кодом ${code}: ${(err || out).slice(0, 300)}`));
+          if (out.trim() === '') return reject(new Error(`Команда «${program}» ничего не напечатала`));
+          // Token counts are unknown for an arbitrary program; characters / 3 is a rough stand-in for Russian text.
+          resolve({ text: out, tokensIn: Math.round((req.system.length + req.user.length) / 3), tokensOut: Math.round(out.length / 3) });
+        });
+        child.stdin.on('error', () => undefined);
+        child.stdin.end(`${req.system}\n\n${req.user}${req.json === false ? '' : '\n\nОтветь одним JSON-объектом, без пояснений вокруг.'}`);
+      });
+    },
+  };
+}
+
 export const PROVIDER_HELP = `Провайдер выбирается переменной DALEL_PROVIDER или по первому найденному ключу:
   GEMINI_API_KEY (+ GEMINI_MODEL)            — Google AI Studio, бесплатный тариф
   OPENAI_API_KEY (+ OPENAI_MODEL, OPENAI_BASE_URL) — OpenAI и совместимые (OpenRouter, DeepSeek, vLLM)
   ANTHROPIC_API_KEY (+ ANTHROPIC_MODEL)
   OLLAMA_BASE_URL (+ OLLAMA_MODEL)           — локальная модель, документ не покидает контур
-  DALEL_PROVIDER=claude-cli                  — установленный Claude Code CLI, ключ не нужен`;
+  DALEL_PROVIDER=claude-cli                  — установленный Claude Code CLI, ключ не нужен
+  DALEL_PROVIDER=cli + DALEL_CLI_CMD         — любая команда, которая читает запрос из стандартного ввода и печатает ответ,
+                                               например DALEL_CLI_CMD="ollama run qwen2.5:14b"`;
 
 /** Returns null when no provider is configured; the caller then runs the deterministic layer only. */
 export function createClient(env: NodeJS.ProcessEnv, cfg: LlmConfig = {}): LlmClient | null {
@@ -235,6 +286,7 @@ export function createClient(env: NodeJS.ProcessEnv, cfg: LlmConfig = {}): LlmCl
     if (p === 'ollama' && (env.OLLAMA_BASE_URL || explicit === 'ollama'))
       return openAiClient('ollama', `${(env.OLLAMA_BASE_URL ?? 'http://localhost:11434').replace(/\/+$/, '')}/v1`, undefined, cfg.model ?? env.OLLAMA_MODEL ?? 'qwen2.5-coder:7b');
     if (p === 'claude-cli') return claudeCliClient(cfg.model ?? env.DALEL_CLAUDE_MODEL ?? 'sonnet');
+    if (p === 'cli' && env.DALEL_CLI_CMD) return commandClient(env.DALEL_CLI_CMD, cfg.model ?? env.DALEL_CLI_MODEL ?? env.DALEL_CLI_CMD);
   }
   if (explicit) throw new Error(`Провайдер «${explicit}» выбран, но для него нет ключа или он не поддерживается.\n${PROVIDER_HELP}`);
   return null;

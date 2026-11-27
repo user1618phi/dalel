@@ -2,7 +2,7 @@ import { type IncomingMessage, type Server, createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { LlmCache, type LlmUsage, completeJson, createClient } from '../src/llm/index.js';
+import { LlmCache, type LlmUsage, completeJson, createClient, splitCommand } from '../src/llm/index.js';
 
 interface Seen {
   url: string;
@@ -109,6 +109,20 @@ describe('провайдеры моделей', () => {
     expect(req.headers['x-api-key']).toBe('ak');
     expect(req.headers['anthropic-version']).toBe('2023-06-01');
     expect(req.body).toMatchObject({ model: 'claude-test', system: 'системная инструкция' });
+  });
+
+  it('любая команда терминала как модель: запрос уходит в стандартный ввод, ответ читается из вывода', async () => {
+    expect(splitCommand(`node -e "console.log('a b')" --flag 'x y'`)).toEqual(['node', '-e', "console.log('a b')", '--flag', 'x y']);
+    const script = "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.stringify({ok:s.includes('системная инструкция')&&s.includes('запрос')})))";
+    const client = createClient({ DALEL_PROVIDER: 'cli', DALEL_CLI_CMD: `${process.execPath} -e "${script}"`, DALEL_CLI_MODEL: 'local-test' });
+    expect(client?.provider).toBe('cli');
+    expect(client?.model).toBe('local-test');
+    const u = usage();
+    expect(await completeJson(client!, new LlmCache(null), u, call)).toEqual({ ok: true });
+    expect(u.calls).toBe(1);
+    const failing = createClient({ DALEL_PROVIDER: 'cli', DALEL_CLI_CMD: `${process.execPath} -e "process.exit(3)"` });
+    await expect(completeJson(failing!, new LlmCache(null), usage(), call)).rejects.toThrow(/кодом 3/);
+    expect(() => createClient({ DALEL_PROVIDER: 'cli' })).toThrow(/нет ключа/);
   });
 
   it('без ключей клиента нет; явный провайдер без ключа — понятная ошибка', () => {

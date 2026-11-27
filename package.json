@@ -6,7 +6,7 @@
   "type": "module",
   "engines": { "node": ">=22.12" },
   "bin": { "dalel": "bin/dalel.mjs" },
-  "files": ["bin", "dist", "packs", "README.md", "LICENSE"],
+  "files": ["bin", "src", "packs", "skills", "README.md", "LICENSE"],
   "scripts": {
     "check": "node bin/dalel.mjs",
     "dalel": "node bin/dalel.mjs",
@@ -22,6 +22,7 @@
     "dejavu-fonts-ttf": "^2.37.3",
     "mammoth": "^1.13.0",
     "pdfmake": "0.2.23",
+    "tsx": "^4.23.15",
     "unpdf": "^2.2.3",
     "yaml": "^2.9.1",
     "zod": "^4.6.7"
@@ -29,7 +30,6 @@
   "devDependencies": {
     "@types/node": "^22.10.0",
     "@types/pdfmake": "^0.2.11",
-    "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^5.1.2"
   }

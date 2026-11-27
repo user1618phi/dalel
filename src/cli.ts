@@ -57,6 +57,7 @@ const HELP = `Dalel — агент статической проверки до�
   dalel audit <отчёт.json> <документ>        точность отчёта: каждое замечание судит другая модель
   dalel recall <отчёт.md> [имя=файл …]       полнота по каталогу: судит другая модель, годится для любого текстового отчёта
   dalel serve [--port 4173]                  веб-интерфейс на этой машине: загрузка документа, отчёт, ответы на вопросы
+  dalel mcp                                  MCP-сервер (stdio) с инструментом check_requirements
 
 ${PROVIDER_HELP}
 
@@ -191,6 +192,11 @@ async function main(): Promise<number> {
     const client = createClient(process.env, { ...(provider ? { provider } : {}), ...(model ? { model } : {}) });
     if (!client) throw new Error('Для baseline нужна модель: задайте ключ провайдера.');
     return (await import('./eval/baseline.js')).runBaseline(client, doc, target, log);
+  }
+  if (args.positional[0] === 'mcp') {
+    (await import('./mcp/server.js')).serve();
+    // The server lives until its input stream closes.
+    return new Promise<number>((done) => process.stdin.on('close', () => done(0)));
   }
   if (args.positional[0] === 'serve') {
     const provider = str('provider');
