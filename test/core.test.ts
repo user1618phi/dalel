@@ -585,3 +585,48 @@ describe('CLI', () => {
     expect(execFileSync(process.execPath, ['--import', 'tsx', join(ROOT, 'src', 'cli.ts'), '--version'], { cwd: ROOT, encoding: 'utf8' })).toMatch(/^dalel \d+\.\d+\.\d+/);
   });
 });
+
+describe('порядок ответов модели не меняет отчёт', () => {
+  it('два прохода с одинаковым заголовком замечания: остаётся одно и то же при любом порядке прихода', async () => {
+    // Both gap passes report the same title on the same line with different wording; which pass answers first must not matter.
+    const racing = (slowFirst: boolean): LlmClient => {
+      const base = fakeClient([]);
+      let gapsCalls = 0;
+      return {
+        ...base,
+        async complete(req: LlmRequest) {
+          if (!req.system.includes('Этап: пропуски в наборе')) return base.complete(req);
+          const first = gapsCalls++ === 0;
+          // The wording is tied to the prompt (its lens half), the delay to the scenario.
+          const long = req.user.length % 2 === 0;
+          await new Promise((r) => setTimeout(r, first === slowFirst ? 40 : 0));
+          return {
+            text: JSON.stringify({
+              findings: [
+                {
+                  criterion: 'set_complete',
+                  severity: 'major',
+                  title: 'Не описан повторный push после смены порога',
+                  explanation: long ? 'Документ не говорит, отправляется ли второй push, когда порог изменён в том же месяце и достигнут снова.' : 'Нет правила для второго push.',
+                  recommendation: 'Описать правило.',
+                  quotes: ['На карту приходится максимум один такой push за календарный месяц.'],
+                },
+              ],
+              trace: [],
+            }),
+            tokensIn: 10,
+            tokensOut: 10,
+          };
+        },
+      };
+    };
+    const pick = async (slowFirst: boolean) => {
+      const { report } = await check(CASE, { client: racing(slowFirst), cacheDir: null });
+      return [...report.findings, ...report.rejected].filter((f) => f.title === 'Не описан повторный push после смены порога').map((f) => f.explanation);
+    };
+    const a = await pick(true);
+    const b = await pick(false);
+    expect(a).toHaveLength(1);
+    expect(b).toEqual(a);
+  });
+});

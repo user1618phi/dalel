@@ -500,8 +500,16 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
 
     // --- dedupe against rules and between the two model stages ---
     // Parallel requests finish in arbitrary order; everything downstream (opponent prompt, ids, cache keys) must not depend on it.
+    // The order has to be total: two passes can return findings with the same first line and the same title,
+    // and the one that comes first is the one that survives the dedupe below.
     llmDrafts.sort(
-      (x, y) => (x.scope === y.scope ? 0 : x.scope === 'set' ? -1 : 1) || (x.evidence[0]?.lineStart ?? 0) - (y.evidence[0]?.lineStart ?? 0) || x.title.localeCompare(y.title, 'ru'),
+      (x, y) =>
+        (x.scope === y.scope ? 0 : x.scope === 'set' ? -1 : 1) ||
+        (x.evidence[0]?.lineStart ?? 0) - (y.evidence[0]?.lineStart ?? 0) ||
+        x.title.localeCompare(y.title, 'ru') ||
+        y.evidence.length - x.evidence.length ||
+        y.explanation.length - x.explanation.length ||
+        x.explanation.localeCompare(y.explanation, 'ru'),
     );
     const sameTopic = (x: Criterion, y: Criterion) => x === y || FAMILY[x] === y || FAMILY[y] === x;
     // One line of a requirement often carries several different defects, so a shared line is not enough to call two findings the same:
