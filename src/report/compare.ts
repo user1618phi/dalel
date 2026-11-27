@@ -19,8 +19,22 @@ function key(f: Finding): string {
 
 export function compareReports(before: Report, after: Report): Comparison {
   const live = (r: Report) => r.findings.filter((f) => f.status !== 'resolved');
-  const was = new Map(live(before).map((f) => [key(f), f]));
-  const now = new Map(live(after).map((f) => [key(f), f]));
+  // The same edition checked twice (answers of the author applied): ids are stable, so they identify a finding exactly.
+  const sameEdition = before.passport.documentSha256 === after.passport.documentSha256 && live(after).every((f) => before.findings.some((b) => b.id === f.id && b.title === f.title));
+  // Several findings can share a rule or criterion and a quote; the ordinal keeps them apart instead of collapsing them into one.
+  const index = (list: Finding[]) => {
+    const seen = new Map<string, number>();
+    return new Map(
+      list.map((f) => {
+        const base = sameEdition ? `${f.id}|${f.title}` : key(f);
+        const n = seen.get(base) ?? 0;
+        seen.set(base, n + 1);
+        return [`${base}#${n}`, f] as const;
+      }),
+    );
+  };
+  const was = index(live(before));
+  const now = index(live(after));
   return {
     before,
     after,
