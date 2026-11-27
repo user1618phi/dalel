@@ -7,6 +7,7 @@ import { parse } from 'yaml';
 import { runBaseline } from '../src/eval/baseline.js';
 import { runAudit } from '../src/eval/audit.js';
 import { ablation, coverageText, runCoverage } from '../src/eval/coverage.js';
+import { judgeRecall } from '../src/eval/recall.js';
 import { renderStability } from '../src/eval/stability.js';
 import type { LlmClient } from '../src/llm/index.js';
 import { check } from '../src/pipeline.js';
@@ -102,6 +103,29 @@ describe('вклад агентов и проверка точности', () =>
     expect(md).toContain('| Все | ' + report.findings.length + ' |');
     expect(md).toContain('## Замечания, которые судья счёл неверными');
     expect(md).toMatch(/\| Все \| \d+ \| \d+ \| \d+ \| \d+ \| \d+ % \| \d+ % \|/);
+  });
+});
+
+describe('полнота по мнению судьи', () => {
+  it('считает найденное и частично найденное по тяжести и терпит судью, пропустившего запись', async () => {
+    const judge: LlmClient = {
+      provider: 'fake',
+      model: 'judge-1',
+      cacheId: 'judge',
+      async complete(req) {
+        expect(req.user).toContain('<report>');
+        const ids = [...req.user.matchAll(/^(G-\d+): /gm)].map((m) => m[1] ?? '');
+        // Every third entry is covered, every third partial, the rest are left out by the judge.
+        return { text: JSON.stringify({ verdicts: ids.flatMap((id, i) => (i % 3 === 0 ? [{ id, verdict: 'covered', where: 'x' }] : i % 3 === 1 ? [{ id, verdict: 'partial', where: 'y' }] : [])) }), tokensIn: 1, tokensOut: 1 };
+      },
+    };
+    const res = await judgeRecall(judge, 'Отчёт: метод GET изменяет состояние.', gold, 'проба');
+    expect(res.rows.map((r) => r.total)).toEqual([5, 32, 38]);
+    const total = res.rows.reduce((n, r) => n + r.covered + r.partial, 0);
+    expect(total).toBeGreaterThan(40);
+    expect(total).toBeLessThan(60);
+    expect(res.missing.length).toBeGreaterThan(5);
+    expect(res.missing.every((id) => /^G-\d+$/.test(id))).toBe(true);
   });
 });
 

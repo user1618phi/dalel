@@ -36,6 +36,8 @@ const Pack = z.object({
   injection: z.array(z.string()).optional(),
   /** Domain questions handed to the model when it looks for gaps; never evaluated by code. */
   lenses: z.array(z.string()).optional(),
+  /** Standard terms of the domain; the model is asked to use them so that a reader from the industry recognises the issue. */
+  vocabulary: z.array(z.string()).optional(),
   omissions: z.array(Omission).optional(),
 });
 

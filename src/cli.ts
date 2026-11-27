@@ -55,6 +55,7 @@ const HELP = `Dalel — агент статической проверки до�
   dalel baseline <документ> <ответ.md>       контрольный опыт: один запрос к модели без конвейера
   dalel stability <a.json> <b.json> …        насколько совпадают замечания между прогонами
   dalel audit <отчёт.json> <документ>        точность отчёта: каждое замечание судит другая модель
+  dalel recall <отчёт.md> [имя=файл …]       полнота по каталогу: судит другая модель, годится для любого текстового отчёта
   dalel serve [--port 4173]                  веб-интерфейс на этой машине: загрузка документа, отчёт, ответы на вопросы
 
 ${PROVIDER_HELP}
@@ -66,7 +67,7 @@ interface Args {
   flags: Map<string, string | true>;
 }
 
-const VALUE_FLAGS = new Set(['formats', 'questions', 'answers', 'provider', 'model', 'packs', 'fail-on', 'out', 'tests', 'baseline', 'port']);
+const VALUE_FLAGS = new Set(['formats', 'questions', 'answers', 'provider', 'model', 'packs', 'fail-on', 'out', 'tests', 'baseline', 'port', 'gold']);
 
 function parseArgs(argv: string[]): Args {
   const positional: string[] = [];
@@ -207,6 +208,15 @@ async function main(): Promise<number> {
     const client = createClient(process.env, { ...(provider ? { provider } : {}), ...(model ? { model } : {}) });
     if (!client) throw new Error('Для audit нужна модель: задайте ключ провайдера.');
     return (await import('./eval/audit.js')).runAudit(client, reportPath, doc, str('out') ?? 'docs/EVAL-precision.md', log);
+  }
+  if (args.positional[0] === 'recall') {
+    const files = args.positional.slice(1);
+    if (files.length === 0) throw new Error('Нужен хотя бы один текстовый отчёт: dalel recall <отчёт.md> [имя=другой.md …]');
+    const provider = str('provider');
+    const model = str('model');
+    const client = createClient(process.env, { ...(provider ? { provider } : {}), ...(model ? { model } : {}) });
+    if (!client) throw new Error('Для recall нужна модель: задайте ключ провайдера.');
+    return (await import('./eval/recall.js')).runRecall(client, files, str('gold') ?? 'eval/case/gold.yaml', str('out') ?? 'docs/EVAL-recall.md', log);
   }
   if (args.positional[0] === 'stability') {
     const files = args.positional.slice(1);

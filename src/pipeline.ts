@@ -361,6 +361,8 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
   const verifier = new QuoteVerifier(doc, reqs, masked.text);
   const docText = numberedDocument(doc, masked.text.split('\n'));
   const lenses = packs.filter((p) => packApplies(p, doc.text)).flatMap((p) => p.lenses ?? []);
+  const vocabulary = packs.filter((p) => packApplies(p, doc.text)).flatMap((p) => p.vocabulary ?? []);
+  const terms = vocabulary.length > 0 ? `\n\nСловарь предметной области — называй вещи этими терминами там, где речь идёт о них:\n${vocabulary.map((v) => `- ${v}`).join('\n')}` : '';
   // Bookkeeping rows of an API card say nothing about behaviour; sending them to the model only breeds noise.
   const bookkeeping = /^\|?\s*\**\s*(controller|gitlab project|framework|author|developer|url type|swagger)\b/iu;
   const known = (ids?: Set<string>) =>
@@ -382,7 +384,7 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
         const res = await completeJson(client, cache, usage, {
           stage: `анализ требований ${bi + 1}/${batches.length}`,
           system: ANALYZE_SYSTEM,
-          user: outgoing(`${docText}\n\nПункты для проверки:\n${unitList(batch)}\n\nУже найдено правилами (не повторять):\n${known(ids)}`),
+          user: outgoing(`${docText}\n\nПункты для проверки:\n${unitList(batch)}\n\nУже найдено правилами (не повторять):\n${known(ids)}${terms}`),
           schema: AnalyzeSchema,
         });
         llmUsed = true;
@@ -425,7 +427,7 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
     // --- free-form reviewer: runs alongside the structured agents, its prose feeds the second look ---
     const freeReview: Promise<string> = opts.skipStages?.includes('sweep')
       ? Promise.resolve('')
-      : completeText(client, cache, usage, { system: FREE_SYSTEM, user: outgoing(docText) }).catch((e: unknown) => {
+      : completeText(client, cache, usage, { system: FREE_SYSTEM, user: outgoing(`${docText}${terms}`) }).catch((e: unknown) => {
           diagnostics.push({ level: 'warning', code: 'llm_stage_failed', message: `Этап «вольный ревьюер» не выполнен: ${e instanceof Error ? e.message : String(e)}`, hint: 'Повторный взгляд выполнен без вольного отчёта.' });
           return '';
         });
@@ -449,7 +451,7 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
         const res = await completeJson(client, cache, usage, {
           stage: stage.name,
           system: stage.system,
-          user: outgoing(`${docText}\n\nСписок пунктов:\n${unitList(reqs)}\n\nУже найдено правилами (не повторять):\n${known()}${stage.extra}`),
+          user: outgoing(`${docText}\n\nСписок пунктов:\n${unitList(reqs)}\n\nУже найдено правилами (не повторять):\n${known()}${stage.extra}${terms}`),
           schema: SetSchema,
         });
         llmUsed = true;
@@ -522,7 +524,7 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
         const res = await completeJson(client, cache, usage, {
           stage: 'повторный взгляд',
           system: SWEEP_SYSTEM,
-          user: outgoing(`${docText}\n\nСписок пунктов:\n${unitList(reqs)}\n\nУже найденные замечания (не повторять):\n${found}\n\nВольный отчёт другого ревьюера (источник кандидатов, проверять по документу):\n<review>\n${freeText.slice(0, 40000) || 'нет'}\n</review>`),
+          user: outgoing(`${docText}\n\nСписок пунктов:\n${unitList(reqs)}\n\nУже найденные замечания (не повторять):\n${found}\n\nВольный отчёт другого ревьюера (источник кандидатов, проверять по документу):\n<review>\n${freeText.slice(0, 40000) || 'нет'}\n</review>${terms}`),
           schema: SetSchema,
         });
         for (const f of res.findings.slice(0, 24)) {
