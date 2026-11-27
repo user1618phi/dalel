@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [20, 22]
+        node: [22, 24]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -27,7 +27,7 @@ jobs:
       # Smoke run without a model: the report must be written by one command.
       - run: npm run check -- docs/requirements.md smoke/report.md --no-llm --formats json,html,pdf,sarif
       - uses: actions/upload-artifact@v4
-        if: matrix.node == 22
+        if: matrix.node == 24
         with:
           name: reports
           path: |
