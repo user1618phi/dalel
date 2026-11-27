@@ -1,0 +1,35 @@
+{
+  "name": "dalel",
+  "version": "0.1.0",
+  "description": "Dalel — агент статической проверки требований: каждая находка с доказательством. ISO/IEC/IEEE 29148, IEEE 830, финтех-пакет правил.",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=20.11" },
+  "bin": { "dalel": "bin/dalel.mjs" },
+  "files": ["bin", "dist", "packs", "README.md", "LICENSE"],
+  "scripts": {
+    "check": "tsx src/cli.ts",
+    "dalel": "tsx src/cli.ts",
+    "eval": "tsx src/cli.ts eval",
+    "coverage": "tsx src/cli.ts coverage",
+    "mcp": "tsx src/mcp/server.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "dejavu-fonts-ttf": "^2.37.3",
+    "mammoth": "^1.13.0",
+    "pdfmake": "0.2.23",
+    "unpdf": "^2.2.3",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/pdfmake": "^0.2.11",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.2"
+  }
+}

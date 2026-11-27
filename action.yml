@@ -1,0 +1,42 @@
+name: Dalel requirements check
+description: Статическая проверка документа требований. Замечания появляются во вкладке Code scanning и в артефакте с отчётом.
+branding:
+  icon: check-square
+  color: blue
+inputs:
+  path:
+    description: Путь к документу требований (.md, .txt, .pdf, .docx, .html)
+    required: true
+  report:
+    description: Куда записать отчёт
+    default: dalel-report.md
+  fail-on:
+    description: critical | major | never — при каком уровне замечаний шаг завершается ошибкой
+    default: critical
+  args:
+    description: Дополнительные параметры командной строки, например --no-llm
+    default: ''
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+    - shell: bash
+      run: npm ci --prefix "$GITHUB_ACTION_PATH" --omit=dev --no-audit --no-fund && npm install --prefix "$GITHUB_ACTION_PATH" --no-save tsx
+    - shell: bash
+      env:
+        DALEL_PATH: ${{ inputs.path }}
+        DALEL_REPORT: ${{ inputs.report }}
+        DALEL_FAIL_ON: ${{ inputs.fail-on }}
+        DALEL_ARGS: ${{ inputs.args }}
+      # Inputs go through the environment so that a crafted value cannot inject shell commands.
+      run: |
+        echo "sarif=${DALEL_REPORT%.*}.sarif" >> "$GITHUB_OUTPUT"
+        node "$GITHUB_ACTION_PATH/bin/dalel.mjs" "$DALEL_PATH" "$DALEL_REPORT" --formats sarif --fail-on "$DALEL_FAIL_ON" $DALEL_ARGS
+      id: check
+    - uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: ${{ steps.check.outputs.sarif }}
+      continue-on-error: true

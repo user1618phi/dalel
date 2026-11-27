@@ -1,0 +1,35 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      # Mutation eval of the deterministic layer: fails when recall drops below 85 % or a clean spec gets a serious finding.
+      - run: npm run eval -- --out eval-report.md
+      # Smoke run without a model: the report must be written by one command.
+      - run: npm run check -- docs/requirements.md smoke/report.md --no-llm --formats json,html,pdf,sarif
+      - uses: actions/upload-artifact@v4
+        if: matrix.node == 22
+        with:
+          name: reports
+          path: |
+            smoke/
+            eval-report.md

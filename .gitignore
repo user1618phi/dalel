@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.local
+.dalel-cache/
+*.log
+.DS_Store
+coverage/
+scratch/
+smoke/
+eval-report.md
