@@ -13,6 +13,8 @@ import {
   ANSWERS_SYSTEM,
   AnalyzeSchema,
   AnswersSchema,
+  ARBITER_SYSTEM,
+  ArbiterSchema,
   CLARIFY_SYSTEM,
   ClarifySchema,
   FREE_SYSTEM,
@@ -502,32 +504,40 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
       (x, y) => (x.scope === y.scope ? 0 : x.scope === 'set' ? -1 : 1) || (x.evidence[0]?.lineStart ?? 0) - (y.evidence[0]?.lineStart ?? 0) || x.title.localeCompare(y.title, 'ru'),
     );
     const sameTopic = (x: Criterion, y: Criterion) => x === y || FAMILY[x] === y || FAMILY[y] === x;
+    // One line of a requirement often carries several different defects, so a shared line is not enough to call two findings the same:
+    // their wording has to overlap as well. Semantic repeats that survive this are caught by the opponent.
+    const alike = (x: { title: string; explanation: string }, y: { title: string; explanation: string }) => {
+      const tx = tokens(`${x.title} ${x.explanation.slice(0, 160)}`);
+      const ty = tokens(`${y.title} ${y.explanation.slice(0, 160)}`);
+      let common = 0;
+      for (const w of tx) if (ty.has(w)) common++;
+      return common / Math.max(1, Math.min(tx.size, ty.size)) >= 0.5;
+    };
     const ruleLines = ruled.findings.map((f) => evidenceLines(f));
+    const isRepeat = (d: { criterion: Criterion; title: string; explanation: string; evidence: Evidence[]; counterexample?: unknown }, pool: Draft[]) => {
+      const lines = evidenceLines(d);
+      const ofRule = ruled.findings.some((rf, i) => !rf.questionSeed && sameTopic(rf.criterion, d.criterion) && subset(lines, ruleLines[i] ?? new Set()) && alike(rf, d));
+      if (ofRule && !d.counterexample) return true;
+      return pool.some((k) => k.title === d.title || (sameTopic(k.criterion, d.criterion) && subset(lines, evidenceLines(k)) && alike(k, d)));
+    };
     const kept: Draft[] = [];
     // Set-level findings go first so that a per-requirement duplicate of the same gap is the one that is dropped.
     const ordered = [...llmDrafts.filter((d) => d.scope === 'set'), ...llmDrafts.filter((d) => d.scope === 'requirement')];
-    for (const d of ordered) {
-      const lines = evidenceLines(d);
-      const dupOfRule = ruled.findings.some((rf, i) => !rf.questionSeed && sameTopic(rf.criterion, d.criterion) && subset(lines, ruleLines[i] ?? new Set()));
-      if (dupOfRule && !d.counterexample) continue;
-      const dupOfKept = kept.some((k) => sameTopic(k.criterion, d.criterion) && (subset(lines, evidenceLines(k)) || k.title === d.title));
-      if (dupOfKept) continue;
-      kept.push(d);
-    }
+    for (const d of ordered) if (!isRepeat(d, kept)) kept.push(d);
 
     // --- second look: what is still missing from the list ---
     if (llmUsed && !opts.skipStages?.includes('sweep')) {
-      progress('вольный ревьюер и повторный взгляд');
+      progress('вольный ревьюер: перенос замечаний в отчёт');
       try {
         const freeText = await freeReview;
-        const found = [...ruled.findings.map((f) => `- [стр. ${f.evidence[0]?.lineStart ?? '—'}] ${f.title}`), ...kept.map((d) => `- [стр. ${d.evidence[0]?.lineStart ?? '—'}] ${d.title}`)].join('\n');
+        if (freeText.trim() === '') throw new Error('вольный отчёт пуст');
         const res = await completeJson(client, cache, usage, {
-          stage: 'повторный взгляд',
+          stage: 'перенос вольного отчёта',
           system: SWEEP_SYSTEM,
-          user: outgoing(`${docText}\n\nСписок пунктов:\n${unitList(reqs)}\n\nУже найденные замечания (не повторять):\n${found}\n\nВольный отчёт другого ревьюера (источник кандидатов, проверять по документу):\n<review>\n${freeText.slice(0, 40000) || 'нет'}\n</review>${terms}`),
+          user: outgoing(`${docText}\n\nСписок пунктов:\n${unitList(reqs)}\n\nВольный отчёт ревьюера:\n<review>\n${freeText.slice(0, 40000) || 'нет'}\n</review>${terms}`),
           schema: SetSchema,
         });
-        for (const f of res.findings.slice(0, 24)) {
+        for (const f of res.findings.slice(0, 40)) {
           const evidence: Evidence[] = [];
           for (const q of f.quotes) {
             const e = verifier.verify(q);
@@ -536,11 +546,7 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
           }
           if (evidence.length === 0) continue;
           const criterion = toCriterion(f.criterion, 'set');
-          const lines = evidenceLines({ evidence });
-          const duplicate =
-            kept.some((k) => sameTopic(k.criterion, criterion) && (subset(lines, evidenceLines(k)) || k.title === f.title)) ||
-            ruled.findings.some((rf, i) => !rf.questionSeed && sameTopic(rf.criterion, criterion) && subset(lines, ruleLines[i] ?? new Set()));
-          if (duplicate) continue;
+          if (isRepeat({ criterion, title: f.title, explanation: f.explanation, evidence }, kept)) continue;
           kept.push({
             source: 'llm',
             stage: 'sweep',
@@ -576,7 +582,7 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
         const res = await completeJson(client, cache, usage, {
           stage: 'оппонент',
           system: OPPONENT_SYSTEM,
-          user: outgoing(`${docText}\n\nЗамечания ревьюера:\n${listing}`),
+          user: outgoing(`${docText}\n\nЗамечания ревьюера:\n${listing}\n\nЗамечания, которые уже есть в отчёте от слоя правил (повтор любого из них — «Дубликат»):\n${known()}`),
           schema: OpponentSchema,
         });
         for (const v of res.verdicts) {
@@ -600,6 +606,27 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
         }
       } catch (e) {
         diagnostics.push({ level: 'warning', code: 'llm_stage_failed', message: `Этап оппонента не выполнен: ${e instanceof Error ? e.message : String(e)}`, hint: 'Замечания модели показаны без независимой перепроверки.' });
+      }
+    }
+    // --- arbiter: a rejection stands only when the document itself answers the remark ---
+    const disputed = contested.filter((d) => d.status === 'rejected' && !/^\s*дубликат/iu.test(d.opponent?.reason ?? ''));
+    if (disputed.length > 0) {
+      progress(`арбитр: ${disputed.length} спорных замечаний`);
+      try {
+        const listing = disputed
+          .map((d, i) => `A-${String(i + 1).padStart(2, '0')} [${d.criterion}] ${d.title}\n  Ревьюер: ${d.explanation}\n  Цитаты: ${d.evidence.map((e) => `стр. ${e.lineStart}: «${e.quote}»`).join(' | ')}\n  Оппонент: ${d.opponent?.reason ?? ''}`)
+          .join('\n\n');
+        const res = await completeJson(client, cache, usage, { stage: 'арбитр', system: ARBITER_SYSTEM, user: outgoing(`${docText}\n\nСпорные замечания:\n${listing}`), schema: ArbiterSchema });
+        for (const v of res.verdicts) {
+          const d = disputed[Number(/(\d+)/.exec(v.id)?.[1] ?? '0') - 1];
+          if (!d || !v.verdict.toLowerCase().startsWith('restor')) continue;
+          d.status = 'confirmed';
+          // A remark that needed an arbiter is never critical: it is real, but arguable.
+          if (d.severity === 'critical') d.severity = 'major';
+          d.opponent = { verdict: 'uphold', reason: `Оппонент возражал: ${d.opponent?.reason ?? ''} Арбитр оставил замечание: ${v.reason}` };
+        }
+      } catch (e) {
+        diagnostics.push({ level: 'warning', code: 'llm_stage_failed', message: `Этап арбитра не выполнен: ${e instanceof Error ? e.message : String(e)}`, hint: 'Спорные замечания остались отклонёнными.' });
       }
     }
     for (const d of kept) (d.status === 'rejected' ? rejected : drafts).push(d);

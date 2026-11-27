@@ -139,14 +139,19 @@ function fakeClient(log: string[]): LlmClient {
         expect(req.json).toBe(false);
         return { text: '- строка 29: «сумма за месяц» — не сказано, что видит клиент до первого сохранения порога.', tokensIn: 10, tokensOut: 10 };
       }
-      if (req.system.includes('Этап: повторный взгляд')) {
+      if (req.system.includes('Этап: арбитр')) {
+        log.push('arbiter');
+        expect(req.user).toContain('Оппонент: Роль указана');
+        return reply({ verdicts: [{ id: 'A-01', verdict: 'reject', reason: 'Строка Authorization прямо называет сессию владельца карты.' }] });
+      }
+      if (req.system.includes('Этап: перенос вольного отчёта')) {
         log.push('sweep');
-        expect(req.user).toContain('Уже найденные замечания');
         expect(req.user).toContain('до первого сохранения порога');
         return reply({
           findings: [
             { criterion: 'set_complete', severity: 'major', title: 'Не сказано, что видит клиент до первого сохранения порога', explanation: 'Экран показывает поле порога, но начальное значение не задано.', quotes: ['На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить».'], counterexample: null, recommendation: 'Описать начальное состояние экрана.' },
-            { criterion: 'set_consistent', severity: 'major', title: 'Повтор уже найденного', explanation: 'То же самое.', quotes: ['На карту приходится максимум один такой push за календарный месяц.'], counterexample: null, recommendation: '' },
+            { criterion: 'set_consistent', severity: 'major', title: 'Правила Ф-3 и Ф-4 расходятся: второй push за месяц', explanation: 'Одно правило ограничивает число уведомлений, другое требует нового.', quotes: ['На карту приходится максимум один такой push за календарный месяц.'], counterexample: null, recommendation: '' },
+            { criterion: 'set_complete', severity: 'major', title: 'Не сказано, что считается календарным месяцем для карты, выпущенной в середине месяца', explanation: 'Та же строка, но другая проблема: начало первого периода не задано.', quotes: ['На карту приходится максимум один такой push за календарный месяц.'], counterexample: null, recommendation: '' },
           ],
           trace: [],
         });
@@ -273,9 +278,11 @@ describe('конвейер с моделью', () => {
     expect(log).toContain('free');
     expect(log).toContain('sweep');
     expect(log).toContain('opponent');
+    expect(log).toContain('arbiter');
     // The second look adds what was missing and does not re-add what the first passes already reported.
     const swept = report.findings.filter((f) => f.stage === 'sweep');
-    expect(swept.map((f) => f.title)).toEqual(['Не сказано, что видит клиент до первого сохранения порога']);
+    // …but a different defect on the same line is kept: one line can carry several problems.
+    expect(swept.map((f) => f.title).sort()).toEqual(['Не сказано, что видит клиент до первого сохранения порога', 'Не сказано, что считается календарным месяцем для карты, выпущенной в середине месяца']);
     expect(new Set(report.findings.map((f) => f.stage))).toEqual(new Set(['rules', 'analyze', 'consistency', 'sweep']));
     expect(log).toContain('clarify');
     expect(report.passport.mode).toBe('rules+llm');

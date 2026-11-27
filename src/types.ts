@@ -151,7 +151,7 @@ export const STAGE_LABEL: Record<Stage, string> = {
   analyze: 'Аналитик (каждый пункт)',
   consistency: 'Ревизор согласованности',
   gaps: 'Искатель пропусков',
-  sweep: 'Вольный ревьюер и повторный взгляд',
+  sweep: 'Вольный ревьюер',
 };
 
 export type FindingStatus = 'confirmed' | 'downgraded' | 'question' | 'rejected' | 'resolved';
