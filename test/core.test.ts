@@ -207,7 +207,16 @@ function fakeClient(log: string[]): LlmClient {
       if (req.system.includes('Этап: оппонент')) {
         log.push('opponent');
         const ids = [...req.user.matchAll(/^(C-\d+) \[[^\]]*\] (.*)$/gm)].map((m) => ({ id: m[1], title: m[2] ?? '' }));
-        return reply({ verdicts: ids.map((x) => (x.title.includes('Спорное') ? { id: x.id, verdict: 'reject', severity: null, reason: 'Роль указана в строке Authorization.' } : { id: x.id, verdict: 'uphold', severity: null, reason: 'Совместимого прочтения нет.' })) });
+        const main = ids.find((x) => x.title.startsWith('Ф-3 и Ф-4'))?.id ?? 'C-01';
+        return reply({
+          verdicts: ids.map((x) =>
+            x.title.includes('Спорное')
+              ? { id: x.id, verdict: 'reject', severity: null, reason: 'Роль указана в строке Authorization.' }
+              : x.title.includes('календарным месяцем для карты')
+                ? { id: x.id, verdict: 'reject', severity: null, reason: `Дубликат ${main}: та же неопределённость месяца.` }
+                : { id: x.id, verdict: 'uphold', severity: null, reason: 'Совместимого прочтения нет.' },
+          ),
+        });
       }
       if (req.system.includes('Этап: вопросы автору')) {
         log.push('clarify');
@@ -281,8 +290,11 @@ describe('конвейер с моделью', () => {
     expect(log).toContain('arbiter');
     // The second look adds what was missing and does not re-add what the first passes already reported.
     const swept = report.findings.filter((f) => f.stage === 'sweep');
-    // …but a different defect on the same line is kept: one line can carry several problems.
-    expect(swept.map((f) => f.title).sort()).toEqual(['Не сказано, что видит клиент до первого сохранения порога', 'Не сказано, что считается календарным месяцем для карты, выпущенной в середине месяца']);
+    // A different defect on the same line reaches the opponent instead of being dropped by line alone;
+    // the opponent calls it a repeat, and it is folded into the main finding as one more facet.
+    expect(swept.map((f) => f.title)).toEqual(['Не сказано, что видит клиент до первого сохранения порога']);
+    expect(report.findings.find((f) => f.title.startsWith('Ф-3 и Ф-4'))?.aspects).toEqual(['Не сказано, что считается календарным месяцем для карты, выпущенной в середине месяца']);
+    expect(renderMarkdown(report)).toContain('**Проявляется также:** Не сказано, что считается календарным месяцем');
     expect(new Set(report.findings.map((f) => f.stage))).toEqual(new Set(['rules', 'analyze', 'consistency', 'sweep']));
     expect(log).toContain('clarify');
     expect(report.passport.mode).toBe('rules+llm');
@@ -291,7 +303,9 @@ describe('конвейер с моделью', () => {
     expect(report.findings.some((f) => f.title === 'Выдуманная находка')).toBe(false);
     expect(report.findings.some((f) => f.title === 'Контрпример с неверной арифметикой')).toBe(false);
     expect(report.summary.droppedUnverified).toBeGreaterThanOrEqual(2);
-    expect(report.rejected.map((f) => f.title)).toEqual(['Спорное замечание для оппонента']);
+    expect(report.rejected.map((f) => f.title).sort()).toEqual(['Не сказано, что считается календарным месяцем для карты, выпущенной в середине месяца', 'Спорное замечание для оппонента']);
+    // Repeats are counted, not listed one by one.
+    expect(renderMarkdown(report)).toContain('Как повторы других замечаний сняты 1');
 
     const conflict = report.findings.find((f) => f.title.startsWith('Ф-3 и Ф-4'));
     expect(conflict?.counterexample?.arithmeticChecked).toBe(true);

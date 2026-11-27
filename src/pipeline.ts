@@ -608,6 +608,21 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
         diagnostics.push({ level: 'warning', code: 'llm_stage_failed', message: `Этап оппонента не выполнен: ${e instanceof Error ? e.message : String(e)}`, hint: 'Замечания модели показаны без независимой перепроверки.' });
       }
     }
+    // --- a repeat is folded into the remark it repeats, so that no facet of a problem is lost ---
+    for (const d of contested) {
+      const reason = d.opponent?.reason ?? '';
+      if (d.status !== 'rejected' || !/^\s*дубликат/iu.test(reason)) continue;
+      const ref = /([A-Z])-(\d{1,3})/.exec(reason);
+      if (!ref) continue;
+      let target: Draft | undefined = ref[1] === 'C' ? contested[Number(ref[2]) - 1] : drafts.find((x) => x.ruleId === ref[0]);
+      // A repeat of a repeat points at the original.
+      const chained = target && target.status === 'rejected' ? /C-(\d{1,3})/.exec(target.opponent?.reason ?? '') : null;
+      if (chained) target = contested[Number(chained[1]) - 1];
+      if (!target || target === d || target.status === 'rejected') continue;
+      const aspects = (target.aspects ??= []);
+      if (aspects.length < 6 && d.title !== target.title && !aspects.includes(d.title)) aspects.push(d.title);
+    }
+
     // --- arbiter: a rejection stands only when the document itself answers the remark ---
     const disputed = contested.filter((d) => d.status === 'rejected' && !/^\s*дубликат/iu.test(d.opponent?.reason ?? ''));
     if (disputed.length > 0) {
@@ -909,7 +924,8 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
       requirementsWithFindings: counted.filter((r) => touched.has(r.id)).length,
       questions: questions.length,
       blockingQuestions: questions.filter((q) => q.blocking && !q.answer).length,
-      rejectedByOpponent: rejectedFinal.length,
+      rejectedByOpponent: rejectedFinal.filter((f) => !/^\s*дубликат/iu.test(f.opponent?.reason ?? '')).length,
+      mergedDuplicates: rejectedFinal.filter((f) => /^\s*дубликат/iu.test(f.opponent?.reason ?? '')).length,
       droppedUnverified,
       critical: active.filter((f) => f.severity === 'critical').map((f) => ({ findingId: f.id, title: f.title, requirementIds: f.requirementIds })),
     },

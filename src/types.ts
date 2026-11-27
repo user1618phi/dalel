@@ -177,6 +177,8 @@ export interface Finding {
   requirementIds: string[];
   evidence: Evidence[];
   counterexample?: Counterexample;
+  /** Other faces of the same problem: remarks the opponent recognised as repeats of this one. */
+  aspects?: string[];
   status: FindingStatus;
   /** Verdict of the opponent pass. */
   opponent?: { verdict: 'uphold' | 'downgrade' | 'reject'; reason: string };
@@ -288,7 +290,10 @@ export interface Summary {
   requirementsWithFindings: number;
   questions: number;
   blockingQuestions: number;
+  /** Remarks of the model rejected on their merits (repeats are counted separately). */
   rejectedByOpponent: number;
+  /** Remarks recognised as repeats and folded into the finding they repeat. */
+  mergedDuplicates?: number;
   droppedUnverified: number;
   critical: { findingId: string; title: string; requirementIds: string[] }[];
 }

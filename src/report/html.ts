@@ -349,7 +349,7 @@ function renderFinding(ctx: Ctx, finding: Finding, heading: 'h3' | 'h4'): string
 <${heading} class="entry-title">${esc(finding.title)}</${heading}>
 <p class="label id ref">${refs.map(esc).join(' · ')}</p>
 ${finding.evidence.map((item) => renderQuote(ctx, item)).join('\n')}
-<p class="pre">${esc(finding.explanation)}</p>
+<p class="pre">${esc(finding.explanation)}</p>${finding.aspects && finding.aspects.length > 0 ? `\n<p class="pre"><span class="label">проявляется также</span> ${esc(finding.aspects.join('; '))}</p>` : ''}
 ${finding.counterexample ? renderCounterexample(ctx, finding.counterexample) : ''}
 ${kv(rows)}
 </div>

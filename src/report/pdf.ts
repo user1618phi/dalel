@@ -312,6 +312,7 @@ function findingCard(ctx: Ctx, finding: Finding): Content {
     label(refs.join(' · ')),
     ...finding.evidence.map((item) => quote(ctx, item)),
     body(finding.explanation, { margin: [0, 6, 0, 0] }),
+    ...(finding.aspects && finding.aspects.length > 0 ? [body(`Проявляется также: ${finding.aspects.join('; ')}`, { margin: [0, 4, 0, 0], color: MUTED })] : []),
   ];
   if (finding.counterexample) stack.push(counterexample(ctx, finding.counterexample));
   stack.push(kv(rows));

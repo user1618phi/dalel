@@ -85,6 +85,10 @@ function findingCard(f: Finding, reqs: Map<string, Requirement>): string[] {
   out.push(...quoteBlock(f, reqs));
   out.push('');
   out.push(f.explanation);
+  if (f.aspects && f.aspects.length > 0) {
+    out.push('');
+    out.push(`**Проявляется также:** ${f.aspects.map((a) => a.replace(/[.;]+$/, '')).join('; ')}.`);
+  }
   if (f.counterexample) {
     const c = f.counterexample;
     out.push('');
@@ -368,7 +372,8 @@ export function renderMarkdown(report: Report): string {
   out.push(`| Существенных | ${s.bySeverity.major} |`);
   out.push(`| Незначительных | ${s.bySeverity.minor} |`);
   out.push(`| Вопросов автору (блокирующих) | ${s.questions} (${s.blockingQuestions}) |`);
-  out.push(`| Отклонено оппонентом | ${s.rejectedByOpponent} |`);
+  out.push(`| Отклонено оппонентом по существу | ${s.rejectedByOpponent} |`);
+  out.push(`| Повторов склеено с основным замечанием | ${s.mergedDuplicates ?? 0} |`);
   out.push(`| Отброшено без подтверждённой цитаты | ${s.droppedUnverified} |`);
   out.push('');
   out.push('По характеристикам качества:');
