@@ -118,7 +118,7 @@ function findingCard(f: Finding, reqs: Map<string, Requirement>): string[] {
 
 export function questionBlock(q: Question, withAnswerSlot: boolean): string[] {
   const out: string[] = [];
-  out.push(`### ${q.id}${q.blocking ? ' · блокирует разработку' : ''} · риск ${RISK_LEVEL[q.risk.level] ?? q.risk.level} (${RISK_KIND[q.risk.kind] ?? q.risk.kind})`);
+  out.push(`### ${q.id}${q.followUpOf ? ` · уточнение к ${q.followUpOf}` : ''}${q.blocking ? ' · блокирует разработку' : ''} · риск ${RISK_LEVEL[q.risk.level] ?? q.risk.level} (${RISK_KIND[q.risk.kind] ?? q.risk.kind})`);
   out.push('');
   out.push(`**Кому:** ${q.addressee}`);
   out.push('');

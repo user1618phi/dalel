@@ -238,7 +238,25 @@ function fakeClient(log: string[]): LlmClient {
         log.push('answers');
         const q = /^(Q-\d+): Допускается/m.exec(req.user)?.[1] ?? 'Q-01';
         const d = /Связанные находки: (D-\d+)/.exec(req.user.slice(req.user.indexOf(`${q}:`)))?.[1] ?? 'D-001';
-        return reply({ resolutions: [{ questionId: q, findingId: d, status: 'resolved', note: 'Ответ снимает противоречие.', proposedText: 'Ф-3. На карту отправляется не более одного push за календарный месяц, включая случаи изменения порога.' }] });
+        if (req.user.includes('Ответ автора: Сбрасывается')) return reply({ resolutions: [], followUps: [] });
+        return reply({
+          resolutions: [{ questionId: q, findingId: d, status: 'resolved', note: 'Ответ снимает противоречие.', proposedText: 'Ф-3. На карту отправляется не более одного push за календарный месяц, включая случаи изменения порога.' }],
+          followUps: [
+            {
+              afterQuestionId: q,
+              addressee: 'Владелец продукта',
+              text: 'Сбрасывается ли признак отправки push в первый день нового месяца?',
+              why: 'Иначе в следующем месяце уведомление не придёт.',
+              scenario: 'Push отправлен 20 января; 3 февраля расходы снова достигли порога.',
+              options: [
+                { label: 'Сбрасывается', consequence: 'Добавить правило в Ф-3.', test: 'Дано push отправлен в январе. Когда порог достигнут в феврале. Тогда push отправлен.' },
+                { label: 'Не сбрасывается', consequence: 'Уведомление работает один раз.' },
+              ],
+              defaultAssumption: 'Сбрасывается.',
+            },
+            { afterQuestionId: q, text: 'Допускается ли второй push за месяц после изменения порога?', options: [{ label: 'Да' }, { label: 'Нет' }] },
+          ],
+        });
       }
       throw new Error('неожиданный этап');
     },
@@ -321,6 +339,15 @@ describe('конвейер с моделью', () => {
     const second = await check(CASE, { client: fakeClient(log), cacheDir: null, answerEntries: [{ ...entries[0]!, id: 'Q-99' }] });
     expect(log).toContain('answers');
     expect(second.report.answersApplied).toMatchObject({ count: 1, resolved: 1 });
+    // The agent heard the answer and asked one new question; a repeat of an already asked question is not added.
+    const followUps = second.report.questions.filter((x) => x.followUpOf);
+    expect(followUps.map((x) => x.text)).toEqual(['Сбрасывается ли признак отправки push в первый день нового месяца?']);
+    expect(followUps[0]?.blocking).toBe(true);
+    expect(renderMarkdown(second.report)).toContain(`уточнение к ${followUps[0]?.followUpOf}`);
+    // Second round of the dialogue: the follow-up is answered in the same file, its test becomes a test case.
+    const third = await check(CASE, { client: fakeClient([]), cacheDir: null, answerEntries: [{ ...entries[0]!, id: 'Q-99' }, { id: 'Q-77', question: followUps[0]?.text ?? '', answer: 'Сбрасывается' }] });
+    expect(third.report.answersApplied?.count).toBe(2);
+    expect(third.report.testCases?.some((t) => t.kind === 'decision' && t.then[0]?.includes('push отправлен'))).toBe(true);
     expect(second.report.answersApplied?.before?.critical).toBe(first.report.summary.bySeverity.critical);
     expect(renderMarkdown(second.report)).toContain('### Что изменили ответы автора');
     const resolved = second.report.findings.find((f) => f.status === 'resolved');

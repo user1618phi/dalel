@@ -211,6 +211,8 @@ export interface Question {
   scenario?: string;
   /** The option the agent itself would choose, and why. */
   recommended?: { label: string; reason: string };
+  /** Set on a question the agent asked after hearing the answer to another one. */
+  followUpOf?: string;
   answer?: string;
 }
 

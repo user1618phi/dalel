@@ -739,63 +739,99 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
     diagnostics.push({ level: 'info', code: 'note', message: `Вопросов подготовлено ${questionDrafts.length}; в отчёт вошли ${maxQ} с наибольшим риском. Остальные темы остались в находках.` });
   }
 
-  // --- answers of the author ---
+  // --- answers of the author: a short dialogue, up to three rounds ---
   let answersApplied: Report['answersApplied'];
-  const answers: Record<string, string> = { ...(opts.answers ?? {}) };
+  const given: Record<string, string> = { ...(opts.answers ?? {}) };
+  const pendingEntries = [...(opts.answerEntries ?? [])];
   // A model may word or number the questions differently on another run; an answer is applied only to the question it was given to.
-  for (const entry of opts.answerEntries ?? []) {
-    const target = entry.question === '' ? questions.find((q) => q.id === entry.id) : (questions.find((q) => q.id === entry.id && sameQuestion(q.text, entry.question)) ?? questions.find((q) => sameQuestion(q.text, entry.question)));
-    if (target) answers[target.id] = entry.answer;
-    else
-      diagnostics.push({
-        level: 'warning',
-        code: 'note',
-        message: `Ответ на ${entry.id} не применён: в этом прогоне нет вопроса с такой формулировкой («${entry.question.slice(0, 90)}»).`,
-        hint: 'Запустите агента с тем же кэшем и той же моделью, что и при формировании файла вопросов, или обновите файл вопросов.',
-      });
-  }
-  const answered = questions.filter((q) => answers[q.id]);
+  const bindEntries = () => {
+    for (let i = pendingEntries.length - 1; i >= 0; i--) {
+      const entry = pendingEntries[i];
+      if (!entry) continue;
+      const target = entry.question === '' ? questions.find((q) => q.id === entry.id) : (questions.find((q) => q.id === entry.id && sameQuestion(q.text, entry.question)) ?? questions.find((q) => sameQuestion(q.text, entry.question)));
+      if (!target) continue;
+      given[target.id] = entry.answer;
+      pendingEntries.splice(i, 1);
+    }
+  };
   const beforeAnswers = {
     findings: findings.length,
     critical: findings.filter((f) => f.severity === 'critical').length,
     major: findings.filter((f) => f.severity === 'major').length,
     headline: computeVerdict(findings, questions, fixFirst, llmUsed).headline,
   };
-  if (answered.length > 0) {
-    for (const q of answered) q.answer = answers[q.id] ?? '';
-    let resolved = 0;
-    if (client) {
-      progress('учёт ответов автора');
-      try {
-        const listing = answered
-          .map((q) => `${q.id}: ${q.text}\n  Ответ автора: ${q.answer}\n  Связанные находки: ${q.findingIds.map((id) => `${id} — ${findings.find((f) => f.id === id)?.title ?? ''}`).join('; ')}`)
-          .join('\n\n');
-        const res = await completeJson(client, cache, usage, {
-          stage: 'учёт ответов',
-          system: ANSWERS_SYSTEM,
-          user: outgoing(`${docText}\n\nВопросы и ответы:\n${listing}`),
-          schema: AnswersSchema,
-        });
-        for (const r of res.resolutions) {
-          const f = findings.find((x) => x.id === r.findingId);
-          const q = answered.find((x) => x.id === r.questionId);
-          if (!f || !q || !q.findingIds.includes(f.id)) continue;
-          if (r.status.toLowerCase().startsWith('resolv')) {
-            f.status = 'resolved';
-            f.resolution = { byQuestionId: q.id, note: r.note, ...(r.proposedText ? { proposedText: r.proposedText } : {}) };
-            resolved++;
-          } else {
-            f.resolution = { byQuestionId: q.id, note: r.note };
-          }
-        }
-      } catch (e) {
-        diagnostics.push({ level: 'warning', code: 'llm_stage_failed', message: `Этап учёта ответов не выполнен: ${e instanceof Error ? e.message : String(e)}`, hint: 'Ответы записаны в отчёт, но находки не пересмотрены.' });
-      }
-    } else {
-      diagnostics.push({ level: 'info', code: 'note', message: 'Ответы автора записаны в отчёт. Без модели находки не пересматриваются автоматически.' });
+  const processed = new Set<string>();
+  let answeredCount = 0;
+  let resolved = 0;
+  for (let round = 0; round < 3; round++) {
+    bindEntries();
+    const answered = questions.filter((q) => given[q.id] && !processed.has(q.id));
+    if (answered.length === 0) break;
+    for (const q of answered) {
+      q.answer = given[q.id] ?? '';
+      processed.add(q.id);
     }
-    answersApplied = { count: answered.length, resolved, ...(opts.answersFile ? { file: opts.answersFile } : {}), before: beforeAnswers };
+    answeredCount += answered.length;
+    if (!client) {
+      diagnostics.push({ level: 'info', code: 'note', message: 'Ответы автора записаны в отчёт. Без модели находки не пересматриваются автоматически.' });
+      break;
+    }
+    progress(round === 0 ? 'учёт ответов автора' : `учёт ответов автора, круг ${round + 1}`);
+    try {
+      const listing = answered
+        .map((q) => `${q.id}: ${q.text}\n  Ответ автора: ${q.answer}\n  Связанные находки: ${q.findingIds.map((id) => `${id} — ${findings.find((f) => f.id === id)?.title ?? ''}`).join('; ')}`)
+        .join('\n\n');
+      const asked = questions.map((q) => `- ${q.text}`).join('\n');
+      const res = await completeJson(client, cache, usage, {
+        stage: 'учёт ответов',
+        system: ANSWERS_SYSTEM,
+        user: outgoing(`${docText}\n\nВопросы и ответы:\n${listing}\n\nВопросы, которые уже заданы (не повторять в followUps):\n${asked}`),
+        schema: AnswersSchema,
+      });
+      for (const r of res.resolutions) {
+        const f = findings.find((x) => x.id === r.findingId);
+        const q = answered.find((x) => x.id === r.questionId);
+        if (!f || !q || !q.findingIds.includes(f.id) || f.status === 'resolved') continue;
+        if (r.status.toLowerCase().startsWith('resolv')) {
+          f.status = 'resolved';
+          f.resolution = { byQuestionId: q.id, note: r.note, ...(r.proposedText ? { proposedText: r.proposedText } : {}) };
+          resolved++;
+        } else {
+          f.resolution = { byQuestionId: q.id, note: r.note };
+        }
+      }
+      // The dialogue continues: an answer that opens a new fork gets a follow-up question.
+      for (const fu of res.followUps.slice(0, 3)) {
+        const parent = answered.find((q) => q.id === fu.afterQuestionId);
+        if (!parent || fu.text === '' || fu.options.length < 2 || questions.some((q) => sameQuestion(q.text, fu.text))) continue;
+        questions.push({
+          id: `Q-${String(questions.length + 1).padStart(2, '0')}`,
+          addressee: fu.addressee || parent.addressee,
+          text: fu.text,
+          why: fu.why,
+          findingIds: parent.findingIds.filter((id) => findings.find((f) => f.id === id)?.status !== 'resolved'),
+          options: fu.options.map((o) => ({ label: o.label, consequence: o.consequence, ...(o.test ? { test: o.test } : {}) })),
+          defaultAssumption: fu.defaultAssumption,
+          blocking: parent.blocking,
+          risk: parent.risk,
+          ...(fu.scenario ? { scenario: fu.scenario } : {}),
+          followUpOf: parent.id,
+        });
+      }
+    } catch (e) {
+      diagnostics.push({ level: 'warning', code: 'llm_stage_failed', message: `Этап учёта ответов не выполнен: ${e instanceof Error ? e.message : String(e)}`, hint: 'Ответы записаны в отчёт, но находки не пересмотрены.' });
+      break;
+    }
   }
+  for (const entry of pendingEntries) {
+    diagnostics.push({
+      level: 'warning',
+      code: 'note',
+      message: `Ответ на ${entry.id} не применён: в этом прогоне нет вопроса с такой формулировкой («${entry.question.slice(0, 90)}»).`,
+      hint: 'Запустите агента с тем же кэшем и той же моделью, что и при формировании файла вопросов, или обновите файл вопросов.',
+    });
+  }
+  if (answeredCount > 0) answersApplied = { count: answeredCount, resolved, ...(opts.answersFile ? { file: opts.answersFile } : {}), before: beforeAnswers };
 
   // --- traceability ---
   const functional = reqs.filter((r) => r.kind === 'functional');

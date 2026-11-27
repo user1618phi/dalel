@@ -141,9 +141,10 @@ export const ANSWERS_SYSTEM = `${BASE}
   resolved — ответ однозначно снимает дефект; дай proposedText — формулировку требования, которую можно вставить в документ вместо спорной (одно требование, измеримо, с единицами);
   open     — ответ не снимает дефект или создаёт новое противоречие; объясни в note, чего не хватает.
 Не закрывай находку, если ответ уклончив.
+Диалог продолжается: если ответ автора открывает новую развилку, без решения которой требование нельзя записать в документ, задай уточняющий вопрос в followUps — не больше трёх за раз, с конкретной ситуацией и вариантами, как в исходных вопросах. Не спрашивай то, что уже задано или на что уже отвечено. Если уточнять нечего, followUps — пустой список.
 
 Схема ответа:
-{"resolutions":[{"questionId":"Q-01","findingId":"D-003","status":"resolved","note":"одно предложение","proposedText":"…"}]}`;
+{"resolutions":[{"questionId":"Q-01","findingId":"D-003","status":"resolved","note":"одно предложение","proposedText":"…"}],"followUps":[{"afterQuestionId":"Q-01","addressee":"…","text":"…","why":"…","scenario":"…","options":[{"label":"…","consequence":"…","test":"Дано … Когда … Тогда …"}],"defaultAssumption":"…"}]}`;
 
 export const PROMPT_HASH = createHash('sha256')
   .update([ANALYZE_SYSTEM, SET_SYSTEM, GAPS_SYSTEM, FREE_SYSTEM, SWEEP_SYSTEM, OPPONENT_SYSTEM, CLARIFY_SYSTEM, ANSWERS_SYSTEM].join('\u0000'))
@@ -227,7 +228,21 @@ export const AuditSchema = z.object({
 });
 
 export const AnswersSchema = z.object({
-  resolutions: z.array(z.object({ questionId: str, findingId: str, status: str, note: str.optional().default(''), proposedText: str.nullable().optional() })),
+  resolutions: z.array(z.object({ questionId: str, findingId: str, status: str, note: str.optional().default(''), proposedText: str.nullable().optional() })).optional().default([]),
+  followUps: z
+    .array(
+      z.object({
+        afterQuestionId: str,
+        addressee: str.optional().default(''),
+        text: str,
+        why: str.optional().default(''),
+        scenario: str.optional().default(''),
+        options: z.array(z.object({ label: str, consequence: str.optional().default(''), test: str.optional().default('') })).optional().default([]),
+        defaultAssumption: str.optional().default(''),
+      }),
+    )
+    .optional()
+    .default([]),
 });
 
 export function numberedDocument(doc: SourceDoc, lines: string[] = doc.lines): string {
