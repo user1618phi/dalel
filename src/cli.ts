@@ -58,6 +58,8 @@ const HELP = `Dalel — агент статической проверки до�
   dalel recall <отчёт.md> [имя=файл …]       полнота по каталогу: судит другая модель, годится для любого текстового отчёта
   dalel serve [--port 4173]                  веб-интерфейс на этой машине: загрузка документа, отчёт, ответы на вопросы
   dalel mcp                                  MCP-сервер (stdio) с инструментом check_requirements
+  dalel skill install [-a агент] [-g] [--dir путь]  поставить навык Dalel в Claude Code, Cursor, Codex и других агентов
+  dalel doctor                               проверка окружения: Node.js, модель, пакеты правил, навык
 
 ${PROVIDER_HELP}
 
@@ -68,7 +70,7 @@ interface Args {
   flags: Map<string, string | true>;
 }
 
-const VALUE_FLAGS = new Set(['formats', 'questions', 'answers', 'provider', 'model', 'packs', 'fail-on', 'out', 'tests', 'baseline', 'port', 'gold']);
+const VALUE_FLAGS = new Set(['agent', 'dir', 'formats', 'questions', 'answers', 'provider', 'model', 'packs', 'fail-on', 'out', 'tests', 'baseline', 'port', 'gold']);
 
 function parseArgs(argv: string[]): Args {
   const positional: string[] = [];
@@ -77,6 +79,12 @@ function parseArgs(argv: string[]): Args {
     const a = argv[i] ?? '';
     if (a === '-h') flags.set('help', true);
     else if (a === '-v') flags.set('version', true);
+    else if (a === '-g') flags.set('global', true);
+    else if (a === '-a') {
+      const next = argv[++i];
+      if (next === undefined) throw new Error('Параметру -a нужно имя агента.');
+      flags.set('agent', next);
+    }
     else if (a.startsWith('--')) {
       const [name, inline] = a.slice(2).split('=', 2) as [string, string | undefined];
       if (inline !== undefined) flags.set(name, inline);
@@ -171,6 +179,47 @@ async function main(): Promise<number> {
     const v = args.flags.get(name);
     return typeof v === 'string' ? v : undefined;
   };
+
+  if (args.positional[0] === 'skill') {
+    const { AGENT_DIRS, installSkill, skillSource } = await import('./skill.js');
+    if (args.positional[1] !== 'install') {
+      process.stdout.write(`Навык Dalel для агентов-разработчиков: ${join(skillSource(), 'SKILL.md')}\n\nУстановка:\n  dalel skill install                в текущий проект (.claude/skills и .agents/skills)\n  dalel skill install -g             для пользователя: во все найденные на машине агенты\n  dalel skill install -a cursor -g   для одного агента: ${Object.keys(AGENT_DIRS).join(', ')}\n  dalel skill install --dir <путь>   в указанный каталог навыков\n\nТо же через установщик skills.sh: npx skills add user1618phi/dalel\n`);
+      return 0;
+    }
+    const agent = str('agent');
+    const dir = str('dir');
+    const targets = installSkill({
+      global: args.flags.has('global'),
+      ...(agent ? { agents: agent.split(',').map((a) => a.trim()).filter(Boolean) } : {}),
+      ...(dir ? { dir } : {}),
+    });
+    for (const t of targets) log(`навык установлен: ${t}`);
+    log('перезапустите агента и попросите: «проверь ТЗ docs/requirements.md»');
+    return 0;
+  }
+
+  if (args.positional[0] === 'doctor') {
+    const { loadPacks } = await import('./rules/packs.js');
+    const { skillSource, skillTargets } = await import('./skill.js');
+    const v = agentVersion();
+    const out = (label: string, value: string) => process.stdout.write(`${label.padEnd(16)}${value}\n`);
+    out('dalel', `${v.version} (${v.commit})`);
+    out('Node.js', process.versions.node);
+    let packs = 'не загружены';
+    try {
+      packs = loadPacks().map((p) => `${p.id}@${p.version}`).join(', ');
+    } catch (e) {
+      packs = `ошибка — ${e instanceof Error ? e.message : String(e)}`;
+    }
+    out('пакеты правил', packs);
+    const provider = str('provider');
+    const model = str('model');
+    const client = createClient(process.env, { ...(provider ? { provider } : {}), ...(model ? { model } : {}) });
+    out('модель', client ? `${client.model} (${client.provider})` : 'не настроена — работает только слой правил; см. dalel --help');
+    const installed = [...skillTargets({}), ...skillTargets({ global: true })].filter((t) => existsSync(join(t, 'SKILL.md')));
+    out('навык', installed.length > 0 ? installed.join(', ') : `не установлен; источник ${skillSource()}; установка: dalel skill install`);
+    return 0;
+  }
 
   if (args.positional[0] === 'eval') {
     const { runEval } = await import('./eval/run.js');

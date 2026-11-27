@@ -1,0 +1,12 @@
+{
+  "name": "dalel",
+  "description": "Dalel — requirements review agent: every finding comes with proof.",
+  "owner": { "name": "user1618phi", "url": "https://github.com/user1618phi" },
+  "plugins": [
+    {
+      "name": "dalel",
+      "source": "./",
+      "description": "Review a requirements document (ТЗ, SRS, PRD, API spec) against ISO/IEC/IEEE 29148 and IEEE 830 before implementation."
+    }
+  ]
+}

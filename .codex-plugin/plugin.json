@@ -1,0 +1,25 @@
+{
+  "name": "dalel",
+  "version": "0.1.0",
+  "description": "Review a requirements document before any code is written: contradictions, gaps, untestable wording and API-spec errors, every finding backed by a verbatim quote.",
+  "author": { "name": "user1618phi", "url": "https://github.com/user1618phi" },
+  "homepage": "https://github.com/user1618phi/dalel",
+  "repository": "https://github.com/user1618phi/dalel",
+  "license": "MIT",
+  "keywords": ["requirements", "specification", "review", "iso-29148", "fintech", "skill"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Dalel",
+    "shortDescription": "Review requirements before writing code.",
+    "longDescription": "Runs the Dalel command-line agent on a requirements document and reports a verdict, findings with verbatim quotes, blocking questions for the author and draft test cases. Criteria: ISO/IEC/IEEE 29148 and IEEE 830.",
+    "developerName": "user1618phi",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write", "Execute"],
+    "websiteURL": "https://github.com/user1618phi/dalel",
+    "defaultPrompt": [
+      "Check the requirements document before we implement it.",
+      "Is this spec ready for development?",
+      "Review docs/requirements.md and ask me the blocking questions."
+    ]
+  }
+}

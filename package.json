@@ -6,17 +6,19 @@
   "type": "module",
   "engines": { "node": ">=22.12" },
   "bin": { "dalel": "bin/dalel.mjs" },
-  "files": ["bin", "src", "packs", "skills", "README.md", "LICENSE"],
+  "files": ["bin", "dist", "src", "packs", "skills", "README.md", "LICENSE"],
   "scripts": {
     "check": "node bin/dalel.mjs",
     "dalel": "node bin/dalel.mjs",
     "eval": "node bin/dalel.mjs eval",
     "coverage": "node bin/dalel.mjs coverage",
     "serve": "node bin/dalel.mjs serve",
-    "mcp": "tsx src/mcp/server.ts",
+    "mcp": "node bin/dalel.mjs mcp",
+    "doctor": "node bin/dalel.mjs doctor",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
     "dejavu-fonts-ttf": "^2.37.3",

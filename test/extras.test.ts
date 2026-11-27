@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -203,5 +203,29 @@ describe('веб-интерфейс', () => {
     expect((await fetch(`${base}/api/report/..%2F..%2Fetc%2Fpasswd.md`)).status).toBe(404);
     const broken = await fetch(`${base}/api/check?name=broken.pdf`, { method: 'POST', body: Buffer.from('%PDF-1.7 мусор') });
     expect(((await broken.json()) as { verdict: Report['verdict'] }).verdict.code).toBe('not_checked');
+  });
+});
+
+describe('установка навыка в агентов', () => {
+  it('без указания агента проект получает каталоги Claude Code и общий .agents', async () => {
+    const { installSkill, skillTargets } = await import('../src/skill.js');
+    const cwd = mkdtempSync(join(tmpdir(), 'dalel-skill-'));
+    expect(skillTargets({ cwd }).map((t) => t.slice(cwd.length + 1))).toEqual(['.claude/skills/dalel', '.agents/skills/dalel']);
+    const done = installSkill({ cwd });
+    for (const t of done) expect(readFileSync(join(t, 'SKILL.md'), 'utf8')).toMatch(/^---\nname: dalel\n/);
+  });
+
+  it('пользовательская установка идёт только в найденных на машине агентов, явный агент и каталог учитываются', async () => {
+    const { installSkill, skillTargets } = await import('../src/skill.js');
+    const home = mkdtempSync(join(tmpdir(), 'dalel-home-'));
+    expect(skillTargets({ global: true, home })).toEqual([join(home, '.claude/skills/dalel')]);
+    mkdirSync(join(home, '.cursor'));
+    expect(skillTargets({ global: true, home })).toEqual([join(home, '.cursor/skills/dalel')]);
+    expect(skillTargets({ global: true, home, agents: ['codex', 'gemini-cli'] })).toEqual([join(home, '.agents/skills/dalel'), join(home, '.gemini/skills/dalel')]);
+    expect(() => skillTargets({ agents: ['нет-такого'] })).toThrow(/Неизвестный агент/);
+    const [target] = installSkill({ cwd: home, dir: 'custom' });
+    expect(target).toBe(join(home, 'custom', 'dalel'));
+    installSkill({ cwd: home, dir: 'custom' });
+    expect(readFileSync(join(home, 'custom', 'dalel', 'SKILL.md'), 'utf8')).toContain('dalel doctor');
   });
 });

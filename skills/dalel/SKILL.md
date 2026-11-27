@@ -15,7 +15,7 @@ Dalel is a command-line agent. This skill tells you how to run it and how to wor
 
 ## Requirements
 
-Node.js 22.12 or newer. Nothing else has to be installed: `npx` fetches the tool.
+Node.js 22.12 or newer. Nothing else has to be installed: `npx` fetches the tool. If the `dalel` command is already on PATH (`dalel --version` answers), use `dalel` in place of `npx --yes github:user1618phi/dalel` in every command below; `dalel doctor` shows which model is configured.
 
 ## Step 1 — run the check
 

@@ -1,0 +1,10 @@
+{
+  "name": "dalel",
+  "description": "Review a requirements document before any code is written: contradictions, gaps, untestable wording and API-spec errors, every finding backed by a verbatim quote.",
+  "version": "0.1.0",
+  "author": { "name": "user1618phi", "url": "https://github.com/user1618phi" },
+  "license": "MIT",
+  "homepage": "https://github.com/user1618phi/dalel",
+  "repository": "https://github.com/user1618phi/dalel",
+  "keywords": ["requirements", "specification", "review", "iso-29148", "fintech", "skill"]
+}
