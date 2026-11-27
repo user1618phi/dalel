@@ -1,0 +1,3720 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Dalel",
+          "version": "0.1.0",
+          "rules": [
+            {
+              "id": "set_consistent",
+              "shortDescription": {
+                "text": "Непротиворечивость набора"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Непротиворечивость набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "criterion": "set_consistent",
+                "source": "llm"
+              }
+            },
+            {
+              "id": "set_complete",
+              "shortDescription": {
+                "text": "Полнота набора"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "criterion": "set_complete",
+                "source": "llm"
+              }
+            },
+            {
+              "id": "A-001",
+              "shortDescription": {
+                "text": "Корректность (правило A-001)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Корректность». ISO/IEC/IEEE 29148:2018 §5.2.5 Correct; IEEE 830-1998 §4.3.1"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "criterion": "correct",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "A-006",
+              "shortDescription": {
+                "text": "Непротиворечивость набора (правило A-006)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Непротиворечивость набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "criterion": "set_consistent",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "V-001",
+              "shortDescription": {
+                "text": "Валидируемость набора (правило V-001)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Валидируемость набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Able to be validated"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_validatable",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "set_validatable",
+              "shortDescription": {
+                "text": "Валидируемость набора"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Валидируемость набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Able to be validated"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_validatable",
+                "source": "llm"
+              }
+            },
+            {
+              "id": "T-005",
+              "shortDescription": {
+                "text": "Трассируемость (правило T-005)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Трассируемость». IEEE 830-1998 §4.3.8 Traceable"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "traceable",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "verifiable",
+              "shortDescription": {
+                "text": "Проверяемость"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Проверяемость». ISO/IEC/IEEE 29148:2018 §5.2.5 Verifiable; IEEE 830-1998 §4.3.6"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "verifiable",
+                "source": "llm"
+              }
+            },
+            {
+              "id": "C-001",
+              "shortDescription": {
+                "text": "Непротиворечивость набора (правило C-001)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Непротиворечивость набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_consistent",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "complete",
+              "shortDescription": {
+                "text": "Полнота"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота». ISO/IEC/IEEE 29148:2018 §5.2.5 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "complete",
+                "source": "llm"
+              }
+            },
+            {
+              "id": "T-001",
+              "shortDescription": {
+                "text": "Полнота (правило T-001)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота». ISO/IEC/IEEE 29148:2018 §5.2.5 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "complete",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "T-004",
+              "shortDescription": {
+                "text": "Модифицируемость (правило T-004)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Модифицируемость». IEEE 830-1998 §4.3.7 Modifiable"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "modifiable",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "T-002",
+              "shortDescription": {
+                "text": "Соответствие шаблону (правило T-002)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Соответствие шаблону». ISO/IEC/IEEE 29148:2018 §5.2.5 Conforming"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "conforming",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "T-003",
+              "shortDescription": {
+                "text": "Соответствие шаблону (правило T-003)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Соответствие шаблону». ISO/IEC/IEEE 29148:2018 §5.2.5 Conforming"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "conforming",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "unambiguous",
+              "shortDescription": {
+                "text": "Однозначность"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Однозначность». ISO/IEC/IEEE 29148:2018 §5.2.5 Unambiguous; IEEE 830-1998 §4.3.2"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "unambiguous",
+                "source": "llm"
+              }
+            },
+            {
+              "id": "A-010",
+              "shortDescription": {
+                "text": "Корректность (правило A-010)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Корректность». ISO/IEC/IEEE 29148:2018 §5.2.5 Correct; IEEE 830-1998 §4.3.1"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "correct",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "A-005",
+              "shortDescription": {
+                "text": "Непротиворечивость набора (правило A-005)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Непротиворечивость набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_consistent",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "A-009",
+              "shortDescription": {
+                "text": "Полнота набора (правило A-009)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_complete",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "A-008",
+              "shortDescription": {
+                "text": "Непротиворечивость набора (правило A-008)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Непротиворечивость набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_consistent",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "A-007",
+              "shortDescription": {
+                "text": "Непротиворечивость набора (правило A-007)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Непротиворечивость набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_consistent",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "F-002",
+              "shortDescription": {
+                "text": "Полнота набора (правило F-002)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_complete",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "F-004",
+              "shortDescription": {
+                "text": "Полнота набора (правило F-004)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_complete",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "F-005",
+              "shortDescription": {
+                "text": "Полнота набора (правило F-005)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_complete",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "F-012",
+              "shortDescription": {
+                "text": "Полнота набора (правило F-012)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_complete",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "F-006",
+              "shortDescription": {
+                "text": "Полнота набора (правило F-006)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_complete",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "F-007",
+              "shortDescription": {
+                "text": "Полнота набора (правило F-007)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_complete",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "F-008",
+              "shortDescription": {
+                "text": "Полнота набора (правило F-008)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_complete",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "F-003",
+              "shortDescription": {
+                "text": "Полнота набора (правило F-003)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_complete",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "F-001",
+              "shortDescription": {
+                "text": "Полнота набора (правило F-001)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "criterion": "set_complete",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "set_comprehensible",
+              "shortDescription": {
+                "text": "Понятность набора"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Понятность набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Comprehensible"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "criterion": "set_comprehensible",
+                "source": "llm"
+              }
+            },
+            {
+              "id": "L-005",
+              "shortDescription": {
+                "text": "Проверяемость (правило L-005)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Проверяемость». ISO/IEC/IEEE 29148:2018 §5.2.5 Verifiable; IEEE 830-1998 §4.3.6"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "criterion": "verifiable",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "L-008",
+              "shortDescription": {
+                "text": "Атомарность (правило L-008)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Атомарность». ISO/IEC/IEEE 29148:2018 §5.2.5 Singular"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "criterion": "singular",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "T-006",
+              "shortDescription": {
+                "text": "Ранжированность (правило T-006)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Ранжированность». IEEE 830-1998 §4.3.5 Ranked for importance and/or stability"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "criterion": "ranked",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "A-004",
+              "shortDescription": {
+                "text": "Непротиворечивость набора (правило A-004)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Непротиворечивость набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "criterion": "set_consistent",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "L-002",
+              "shortDescription": {
+                "text": "Полнота (правило L-002)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота». ISO/IEC/IEEE 29148:2018 §5.2.5 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "criterion": "complete",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "F-010",
+              "shortDescription": {
+                "text": "Полнота набора (правило F-010)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "criterion": "set_complete",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "F-011",
+              "shortDescription": {
+                "text": "Полнота набора (правило F-011)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "criterion": "set_complete",
+                "source": "rule"
+              }
+            },
+            {
+              "id": "F-009",
+              "shortDescription": {
+                "text": "Полнота набора (правило F-009)"
+              },
+              "fullDescription": {
+                "text": "Характеристика качества требований «Полнота набора». ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "criterion": "set_complete",
+                "source": "rule"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "set_consistent",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Критерий приёмки относит покупку к месяцу проведения, а Ф-2 — к месяцу совершения. По Ф-2 месяц определяется датой совершения покупки по Алматы. Критерий приёмки ждёт, что покупку, совершённую 31 января и проведённую 1 февраля, учтут в феврале. Если сделать по Ф-2, тест не пройдёт. Если сделать по тесту, деньги попадут не в тот месяц и push может прийти не тогда."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 38,
+                  "endLine": 38,
+                  "snippet": {
+                    "text": "Месяц определяется по дате совершения покупки в Алматы."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 64,
+                  "endLine": 64,
+                  "snippet": {
+                    "text": "Провести 1 февраля в 00:03 по Алматы"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 64,
+                  "endLine": 64,
+                  "snippet": {
+                    "text": "Февральский счётчик вырос на 4 000 ₸"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-001",
+            "severity": "critical",
+            "criterion": "set_consistent",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-014",
+              "R-023"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4"
+          }
+        },
+        {
+          "ruleId": "set_consistent",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Ф-3 и Ф-4 расходятся: можно ли отправить второй push после смены порога в том же месяце. Ф-3 допускает на карту не больше одного push за календарный месяц. Ф-4 требует отправить push при следующем достижении нового порога, какой бы ни была история прежней настройки. Если клиент получил push и в том же месяце поднял порог, при новом достижении эти требования дают разный результат. Хранимый «признак отправки» подходит только под Ф-3."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 39,
+                  "endLine": 39,
+                  "snippet": {
+                    "text": "На карту приходится максимум один такой push за календарный месяц."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 40,
+                  "endLine": 40,
+                  "snippet": {
+                    "text": "Если она ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 49,
+                  "endLine": 49,
+                  "snippet": {
+                    "text": "сумму покупки в тиынах, признак отправки и порог в тенге"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-002",
+            "severity": "critical",
+            "criterion": "set_consistent",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-015",
+              "R-016",
+              "R-019"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4"
+          }
+        },
+        {
+          "ruleId": "set_complete",
+          "ruleIndex": 1,
+          "level": "error",
+          "message": {
+            "text": "Нет способа прочитать настройку и сумму за месяц, хотя документ на это опирается. Часть A говорит, что приложение читает и сохраняет настройки через часть B, а экран показывает текущий порог, переключатель и сумму за месяц. В части B описан только один метод — сохранение порога. Метода чтения настройки нет, источника суммы расходов за месяц тоже нет. Если клиент открывает экран с порогом 50 000 ₸ и расходами 12 300 ₸, разработчику неоткуда взять эти значения, а тестировщику не с чем сверить экран."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 52,
+                  "endLine": 52,
+                  "snippet": {
+                    "text": "Приложение читает и сохраняет настройки через дочерний документ"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 29,
+                  "endLine": 29,
+                  "snippet": {
+                    "text": "сумма за месяц и кнопка «Сохранить»"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 103,
+                  "endLine": 103,
+                  "snippet": {
+                    "text": "Сохранение порога. Функциональные требования: чтение порога"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-003",
+            "severity": "critical",
+            "criterion": "set_complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-020",
+              "R-011",
+              "R-029"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "A-001",
+          "ruleIndex": 2,
+          "level": "error",
+          "message": {
+            "text": "Метод GET изменяет состояние. GET по стандарту HTTP не должен менять данные. Такой запрос могут повторить без ведома клиента браузер, прокси, предзагрузка ссылок и повтор при сбое сети; ответ может быть взят из кэша, а параметры попадают в журналы и историю. Настройка клиента изменится или не изменится непредсказуемо."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 104,
+                  "endLine": 104,
+                  "snippet": {
+                    "text": "**REST type** | GET"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 103,
+                  "endLine": 103,
+                  "snippet": {
+                    "text": "**Description** | Сохранение порога. Функциональные требования: чтение порога"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 120,
+                  "endLine": 120,
+                  "snippet": {
+                    "text": "Заменить настройку и вернуть результат сохранения."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 125,
+                  "endLine": 125,
+                  "snippet": {
+                    "text": "Повторное сохранение заменяет действующую настройку."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-004",
+            "severity": "critical",
+            "criterion": "correct",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-030",
+              "R-029",
+              "R-044",
+              "R-047"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Correct; IEEE 830-1998 §4.3.1",
+            "normRef": "RFC 9110 §9.2.1 (безопасные методы)"
+          }
+        },
+        {
+          "ruleId": "A-006",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "Успешный статус содержит тело ошибки. Под успешным кодом приведён ответ с результатом ERROR, хотя для неверных параметров документ назначает код ошибки. Клиент, который судит об успехе по коду, покажет «сохранено» при отклонённой операции; тестировщик не может назвать ожидаемый код для неверной суммы."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 171,
+                  "endLine": 171,
+                  "snippet": {
+                    "text": "{\"result\":\"ERROR\",\"message\":\"Проверьте сумму\"}"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 163,
+                  "endLine": 163,
+                  "snippet": {
+                    "text": "**400.** Ответ в случае, если параметры запроса заполнены неверно."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-005",
+            "severity": "critical",
+            "criterion": "set_consistent",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-064",
+              "R-061"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4"
+          }
+        },
+        {
+          "ruleId": "V-001",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Границы диапазона 1 000–1 000 000 не проверяет ни один критерий приёмки. Диапазон задаёт четыре проверки: 999, 1 000, 1 000 000 и 1 000 001. Ошибки на границах — самые частые, а в критериях приёмки нет ни одного из этих значений."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 37,
+                  "endLine": 37,
+                  "snippet": {
+                    "text": "**Ф-1.** Держатель активной карты KZT задаёт целый порог от 1 000 до 1 000 000 ₸ включительно."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-006",
+            "severity": "major",
+            "criterion": "set_validatable",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-013"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Able to be validated"
+          }
+        },
+        {
+          "ruleId": "set_complete",
+          "ruleIndex": 1,
+          "level": "warning",
+          "message": {
+            "text": "Не описано выключение уведомления и состояние поля до первого сохранения. По умолчанию уведомление выключено, порог не задан, а параметр amount обязателен и проверяется вместе с переключателем. Неизвестно, что показывает поле «Порог, ₸» до первого сохранения. Неизвестно и то, будет ли отклонён запрос с enabled=0, если поле пустое или в нём 500. Остаётся неопределённым, может ли клиент выключить уведомление, не введя допустимый порог."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 37,
+                  "endLine": 37,
+                  "snippet": {
+                    "text": "По умолчанию уведомление выключено."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 119,
+                  "endLine": 119,
+                  "snippet": {
+                    "text": "Проверить сумму и переключатель."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-007",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-013",
+              "R-043"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "set_complete",
+          "ruleIndex": 1,
+          "level": "warning",
+          "message": {
+            "text": "Не описано поведение для неактивной, заблокированной или не тенговой карты. Ф-1 разрешает настройку только держателю активной карты KZT, но метод проверяет лишь принадлежность карты клиенту. Не определено, какой ответ вернёт сохранение для заблокированной или долларовой карты. Не определено и то, что происходит с настройкой, счётчиком и push, если карту заблокировали, закрыли или перевыпустили в середине месяца, после того как порог был задан."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 37,
+                  "endLine": 37,
+                  "snippet": {
+                    "text": "Держатель активной карты KZT задаёт целый порог"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 118,
+                  "endLine": 118,
+                  "snippet": {
+                    "text": "Проверить принадлежность карты клиенту."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-008",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-013",
+              "R-042"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "set_complete",
+          "ruleIndex": 1,
+          "level": "warning",
+          "message": {
+            "text": "Не описан push по событию, пришедшему после окончания месяца. Месяц определяется по дате покупки, поэтому событие за январь может прийти уже в феврале. Пример: порог 50 000 ₸, январские расходы 49 000 ₸, покупка от 31 января на 2 000 ₸ приходит от процессинга 3 февраля (49 000 + 2 000 = 51 000). Неясно, отправляется ли 3 февраля push о достижении январского порога и к какому месяцу относится ограничение на один push."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 38,
+                  "endLine": 38,
+                  "snippet": {
+                    "text": "Месяц определяется по дате совершения покупки в Алматы."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 39,
+                  "endLine": 39,
+                  "snippet": {
+                    "text": "На карту приходится максимум один такой push за календарный месяц."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-009",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-014",
+              "R-015"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "set_complete",
+          "ruleIndex": 1,
+          "level": "warning",
+          "message": {
+            "text": "Не определено, будет ли push, если уведомление включили при расходах выше порога. Ф-3 требует push при переходе расходов от суммы ниже порога к сумме не ниже порога, а Ф-4 разбирает только смену порога, но не переключатель. Пример: порог 50 000 ₸, уведомление выключено, расходы 52 000 ₸, клиент включает уведомление, затем проходит покупка на 1 000 ₸ (52 000 + 1 000 = 53 000). Перехода через порог нет, поэтому неясно, получит ли клиент push в этом месяце. Также не определено, считаются ли расходы, пока уведомление выключено, и сбрасывается ли признак отправки при выключении и повторном включении."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 39,
+                  "endLine": 39,
+                  "snippet": {
+                    "text": "Когда расходы переходят от суммы ниже порога к сумме, равной порогу или выше, клиент получает push."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 37,
+                  "endLine": 37,
+                  "snippet": {
+                    "text": "По умолчанию уведомление выключено."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-010",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-015",
+              "R-013"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "set_complete",
+          "ruleIndex": 1,
+          "level": "warning",
+          "message": {
+            "text": "Не описана смена порога на значение не выше уже накопленных расходов. Ф-4 описывает только случай, когда накопленная сумма ниже нового порога. Пример: расходы 30 000 ₸, порог 50 000 ₸, push ещё не было, клиент меняет порог на 25 000 ₸ или ровно на 30 000 ₸. Неясно, отправляется ли push сразу при сохранении, при следующей покупке или не отправляется в этом месяце вообще."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 40,
+                  "endLine": 40,
+                  "snippet": {
+                    "text": "Если она ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-011",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-016"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "set_validatable",
+          "ruleIndex": 5,
+          "level": "warning",
+          "message": {
+            "text": "Значительную часть функциональных требований не проверяет ни один критерий приёмки. Три критерия приёмки проверяют достижение порога, отнесение к месяцу и исключение перевода. Не проверяются: Ф-4 (смена порога), возвраты, снятие наличных, лимит в один push за месяц, выключенное по умолчанию уведомление, повторная доставка события, а также поведение API при отклонённой сумме и чужой карте. Приёмка может пройти, даже если эти правила не реализованы."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 40,
+                  "endLine": 40,
+                  "snippet": {
+                    "text": "При изменении порога накопленная сумма сохраняется."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 38,
+                  "endLine": 38,
+                  "snippet": {
+                    "text": "Переводы и снятие наличных исключаются."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 52,
+                  "endLine": 52,
+                  "snippet": {
+                    "text": "Повторная доставка одного события процессинга сохраняет исходный итог."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-012",
+            "severity": "major",
+            "criterion": "set_validatable",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-016",
+              "R-014",
+              "R-020"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Able to be validated"
+          }
+        },
+        {
+          "ruleId": "set_complete",
+          "ruleIndex": 1,
+          "level": "warning",
+          "message": {
+            "text": "Не описан отказ сервиса настроек или учёта при обработке покупки. Сервис расходов при каждом событии запрашивает порог в сервисе настроек, а push нужно передать в течение минуты. Не определено, что происходит, если сервис настроек отвечает ошибкой или не отвечает: обновляется ли счётчик, повторяется ли проверка порога, может ли push уйти позже минуты или событие будет потеряно. Тестировщик не может проверить такой сбой без ожидаемого результата."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 43,
+                  "endLine": 43,
+                  "snippet": {
+                    "text": "Сервис расходов → настройки: получить порог карты."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 46,
+                  "endLine": 46,
+                  "snippet": {
+                    "text": "Сервис передаёт push на отправку в течение минуты после получения события."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-013",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-017",
+              "R-018"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "T-005",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "3 требований без идентификатора. В разделах «Нефункциональные требования», «Требования к данным», «Требования к интеграции» требования не пронумерованы. На них нельзя сослаться из тест-кейса, критерия приёмки или задачи, поэтому покрытие не проверить."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 46,
+                  "endLine": 46,
+                  "snippet": {
+                    "text": "Сервис передаёт push на отправку в течение минуты после получения события."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 49,
+                  "endLine": 49,
+                  "snippet": {
+                    "text": "Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 52,
+                  "endLine": 52,
+                  "snippet": {
+                    "text": "Приложение читает и сохраняет настройки через дочерний документ «Уведомление о расходах по карте — REST API»."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-014",
+            "severity": "major",
+            "criterion": "traceable",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-018",
+              "R-019",
+              "R-020"
+            ],
+            "scope": "set",
+            "standardRef": "IEEE 830-1998 §4.3.8 Traceable"
+          }
+        },
+        {
+          "ruleId": "verifiable",
+          "ruleIndex": 7,
+          "level": "warning",
+          "message": {
+            "text": "Нет доли событий и условий измерения для порога в минуту. Не сказано, должна ли минута соблюдаться для всех событий или для их доли, при какой нагрузке и каким способом измеряется время. Результат проверки будет зависеть от методики."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 46,
+                  "endLine": 46,
+                  "snippet": {
+                    "text": "в течение минуты после получения события"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-015",
+            "severity": "major",
+            "criterion": "verifiable",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-018"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Verifiable; IEEE 830-1998 §4.3.6"
+          }
+        },
+        {
+          "ruleId": "C-001",
+          "ruleIndex": 8,
+          "level": "warning",
+          "message": {
+            "text": "Суммы заданы в разных единицах: тиын и тенге. Одни суммы хранятся или передаются в тиынах, другие — в тенге, а правило пересчёта (1 ₸ = 100 тиын) и единица сравнения не названы. Сравнение таких значений без пересчёта ошибается в 100 раз."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 49,
+                  "endLine": 49,
+                  "snippet": {
+                    "text": "Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 124,
+                  "endLine": 124,
+                  "snippet": {
+                    "text": "Целое число тенге, обе границы включены."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 143,
+                  "endLine": 143,
+                  "snippet": {
+                    "text": "`amount` | integer | 32 bit | Да | 1 000–1 000 000 | Порог в тенге | `limit_kzt`"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-016",
+            "severity": "major",
+            "criterion": "set_consistent",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-019",
+              "R-046",
+              "R-052"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4"
+          }
+        },
+        {
+          "ruleId": "complete",
+          "ruleIndex": 9,
+          "level": "warning",
+          "message": {
+            "text": "Набора атрибутов не хватает для возвратов и переключателя. Хранится только сумма покупки. Нет типа операции, связи возврата с исходной покупкой и признака включения уведомления. Без них нельзя выполнить правило о возврате в месяц исходной покупки и учесть переключатель."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 49,
+                  "endLine": 49,
+                  "snippet": {
+                    "text": "сумму покупки в тиынах, признак отправки"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-017",
+            "severity": "major",
+            "criterion": "complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-019"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "T-001",
+          "ruleIndex": 10,
+          "level": "warning",
+          "message": {
+            "text": "Незаполненное место: «заполняются тестировщиками». Содержимое не заполнено: по этому месту документа нельзя ни разработать, ни проверить поведение."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 57,
+                  "endLine": 57,
+                  "snippet": {
+                    "text": "заполняются тестировщиками"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-018",
+            "severity": "major",
+            "criterion": "complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-021"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "complete",
+          "ruleIndex": 9,
+          "level": "warning",
+          "message": {
+            "text": "В исходных условиях не хватает состояния, от которого зависит push. Арифметика верна, но не сказано, включено ли уведомление, отправлялся ли push в этом месяце, за какой месяц расходы и какой тип и статус у карты. При разных состояниях ожидаемый результат будет разным, и тест нельзя повторить однозначно."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 63,
+                  "endLine": 63,
+                  "snippet": {
+                    "text": "Расходы 48 500 ₸, порог 50 000 ₸"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-019",
+            "severity": "major",
+            "criterion": "complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-022"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "complete",
+          "ruleIndex": 9,
+          "level": "warning",
+          "message": {
+            "text": "Не заданы начальные значения счётчиков и не проверяется январский счётчик. В исходных условиях нет начальных расходов за январь и февраль и нет порога. Ожидаемый результат проверяет только февраль. Если сумма попадёт в оба месяца или не в тот месяц, тест может пройти, а итог порога и push остаются без проверки."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 64,
+                  "endLine": 64,
+                  "snippet": {
+                    "text": "Февральский счётчик вырос на 4 000 ₸"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-020",
+            "severity": "major",
+            "criterion": "complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-023"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "T-004",
+          "ruleIndex": 11,
+          "level": "warning",
+          "message": {
+            "text": "У документа нет версии и даты. Нельзя сослаться на конкретную редакцию требований: разработка, тесты и приёмка могут опираться на разные тексты, а изменение требований пройдёт незамеченным."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 68,
+                  "endLine": 68,
+                  "snippet": {
+                    "text": "Документ (версия/дата) в источнике не заполнен."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-021",
+            "severity": "major",
+            "criterion": "modifiable",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-025"
+            ],
+            "scope": "set",
+            "standardRef": "IEEE 830-1998 §4.3.7 Modifiable"
+          }
+        },
+        {
+          "ruleId": "T-002",
+          "ruleIndex": 12,
+          "level": "warning",
+          "message": {
+            "text": "«Ревью требований»: чек-лист не заполнен, 14 пунктов без отметки. Все пункты содержат варианты из шаблона вместо выбранного ответа. Ревью требований формально не проведено: неизвестно, проверены ли тестируемость, откат, безопасность и согласования."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 70,
+                  "endLine": 70,
+                  "snippet": {
+                    "text": "Проверка | Создано или доступно | Проверено | Примечания"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-022",
+            "severity": "major",
+            "criterion": "conforming",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-026"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Conforming"
+          }
+        },
+        {
+          "ruleId": "T-003",
+          "ruleIndex": 13,
+          "level": "warning",
+          "message": {
+            "text": "«Блок согласующих»: таблица пуста. В таблице нет ни одной заполненной строки. Документ никем не согласован, ответственные не названы."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 89,
+                  "endLine": 89,
+                  "snippet": {
+                    "text": "Подразделение | ФИО ответственного | Подпись"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-023",
+            "severity": "major",
+            "criterion": "conforming",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-027"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Conforming"
+          }
+        },
+        {
+          "ruleId": "unambiguous",
+          "ruleIndex": 14,
+          "level": "warning",
+          "message": {
+            "text": "Не определено, кто такой «владелец карты» и вправе ли менять настройку держатель. Владелец счёта и держатель карты (например, дополнительной) могут быть разными людьми, а термин нигде не определён. От трактовки зависит, кто получит 200, а кто отказ. Это прямо влияет на проверку доступа к настройкам чужой карты."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 105,
+                  "endLine": 105,
+                  "snippet": {
+                    "text": "Bearer, сессия владельца карты"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-024",
+            "severity": "major",
+            "criterion": "unambiguous",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-031"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Unambiguous; IEEE 830-1998 §4.3.2"
+          }
+        },
+        {
+          "ruleId": "set_complete",
+          "ruleIndex": 1,
+          "level": "warning",
+          "message": {
+            "text": "Не разграничено, когда метод отвечает 400, а когда result=ERROR. Отклонённая сумма даёт результат ERROR, а неверно заполненные параметры — статус 400, но граница между этими случаями не задана. Неясно, какой ответ получат запросы с enabled=2, amount=50000.5, amount=abc, без amount или с cardId длиной 65 символов. Также не сказано, что показывает экран в каждом из этих случаев."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 121,
+                  "endLine": 121,
+                  "snippet": {
+                    "text": "При отклонении суммы вернуть прежнее состояние и результат ERROR."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 163,
+                  "endLine": 163,
+                  "snippet": {
+                    "text": "Ответ в случае, если параметры запроса заполнены неверно."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-025",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-045",
+              "R-061"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "unambiguous",
+          "ruleIndex": 14,
+          "level": "warning",
+          "message": {
+            "text": "«Вернуть прежнее состояние» читается двумя способами. Можно понять как откат сохранённой настройки или как возврат прежних значений amount и enabled в ответе. От трактовки зависят и реализация, и состав полей в ответе с ошибкой, который проверяет тест."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 121,
+                  "endLine": 121,
+                  "snippet": {
+                    "text": "При отклонении суммы вернуть прежнее состояние и результат ERROR."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-026",
+            "severity": "major",
+            "criterion": "unambiguous",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-045"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Unambiguous; IEEE 830-1998 §4.3.2"
+          }
+        },
+        {
+          "ruleId": "A-010",
+          "ruleIndex": 15,
+          "level": "warning",
+          "message": {
+            "text": "Идентификатор «cardId» передаётся в строке запроса. Параметры строки запроса сохраняются в журналах веб-серверов и прокси, в истории и в заголовке Referer. Идентификатор, связанный с картой или клиентом, окажется в системах, которые не предназначены для таких данных."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 142,
+                  "endLine": 142,
+                  "snippet": {
+                    "text": "`cardId` | string | 1–64 | Да | Карта клиента | Идентификатор карты | `card_id`"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-027",
+            "severity": "major",
+            "criterion": "correct",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-051"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Correct; IEEE 830-1998 §4.3.1",
+            "normRef": "RFC 9110 §17.9 (раскрытие сведений в URI)"
+          }
+        },
+        {
+          "ruleId": "A-005",
+          "ruleIndex": 16,
+          "level": "warning",
+          "message": {
+            "text": "Тип одного поля различается в запросе и ответе (2). amount: integer в запросе, string в ответе; enabled: integer в запросе, string в ответе. Клиенту придётся преобразовывать значение, которое он сам только что отправил; сравнение «отправлено = сохранено» в тестах потребует приведения типов, а ошибка преобразования останется незамеченной."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 143,
+                  "endLine": 143,
+                  "snippet": {
+                    "text": "`amount` | integer | 32 bit | Да | 1 000–1 000 000 | Порог в тенге | `limit_kzt`"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 156,
+                  "endLine": 156,
+                  "snippet": {
+                    "text": "`amount` | string | При успехе | Порог в тенге | `limit_kzt`"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 144,
+                  "endLine": 144,
+                  "snippet": {
+                    "text": "`enabled` | integer | 1 знак | Да | 0 или 1 | Признак включения | `enabled`"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 157,
+                  "endLine": 157,
+                  "snippet": {
+                    "text": "`enabled` | string | «0» или «1» | Признак включения | `enabled`"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-028",
+            "severity": "major",
+            "criterion": "set_consistent",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-052",
+              "R-058",
+              "R-053",
+              "R-059"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4"
+          }
+        },
+        {
+          "ruleId": "A-009",
+          "ruleIndex": 17,
+          "level": "warning",
+          "message": {
+            "text": "Статусы 201, 404 упомянуты, но не описаны. Код встречается в тексте, но для него нет ни условия возврата, ни примера ответа. Разработчик и тестировщик не знают, когда его ждать и что в теле."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 151,
+                  "endLine": 151,
+                  "snippet": {
+                    "text": "Если результат 200 или 201 — успешный."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 189,
+                  "endLine": 189,
+                  "snippet": {
+                    "text": "Для чужой карты возвращается 404, как и для отсутствующей карты."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-029",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-056",
+              "R-068"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "A-008",
+          "ruleIndex": 18,
+          "level": "warning",
+          "message": {
+            "text": "Примеры ответов не соответствуют таблице полей: «enabled», «result». Таблица ответа описывает «enabled», «result» без условия присутствия, но часть примеров этих полей не содержит. У ответов нет единой модели: клиент не может разобрать ответ одним способом, а тестировщик — проверить схему."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 157,
+                  "endLine": 157,
+                  "snippet": {
+                    "text": "`enabled` | string | «0» или «1» | Признак включения | `enabled`"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 171,
+                  "endLine": 171,
+                  "snippet": {
+                    "text": "{\"result\":\"ERROR\",\"message\":\"Проверьте сумму\"}"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 180,
+                  "endLine": 180,
+                  "snippet": {
+                    "text": "{\"message\":\"Некорректный запрос\"}"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 185,
+                  "endLine": 185,
+                  "snippet": {
+                    "text": "{\"message\":\"Требуется вход\"}"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-030",
+            "severity": "major",
+            "criterion": "set_consistent",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-059",
+              "R-064",
+              "R-066",
+              "R-067"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4"
+          }
+        },
+        {
+          "ruleId": "unambiguous",
+          "ruleIndex": 14,
+          "level": "warning",
+          "message": {
+            "text": "Не определено, когда доступ к ресурсу «запрещён» и возвращается 403. В пункте не сказано, о каком ресурсе идёт речь и чем ситуация 403 отличается от 401 при авторизации по сессии владельца карты. Неясно, какой запрос должен получить 403, поэтому реализовать и проверить этот статус нельзя."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 175,
+                  "endLine": 175,
+                  "snippet": {
+                    "text": "Ответ в случае, если на указанный ресурс доступ запрещен."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-031",
+            "severity": "major",
+            "criterion": "unambiguous",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-065"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Unambiguous; IEEE 830-1998 §4.3.2"
+          }
+        },
+        {
+          "ruleId": "complete",
+          "ruleIndex": 9,
+          "level": "warning",
+          "message": {
+            "text": "Не описано состояние настройки порога после ответа 500. Для внутренней ошибки не сказано, остаётся ли действующая настройка порога и переключателя прежней или может сохраниться частично. Если ошибка произойдёт во время замены настройки, клиент не узнает, какой порог действует. Тестировщик не сможет проверить состояние данных после сбоя."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 176,
+                  "endLine": 176,
+                  "snippet": {
+                    "text": "Ответ в случае, если произошла внутренняя ошибка сервера."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-032",
+            "severity": "major",
+            "criterion": "complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-065"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "A-007",
+          "ruleIndex": 19,
+          "level": "warning",
+          "message": {
+            "text": "В разделе статуса 403 описан ответ 404. Раздел называется по коду 403, но текст говорит, что возвращается 404. Остаётся неизвестным, существует ли ответ 403 вообще и в каком случае он возвращается."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 189,
+                  "endLine": 189,
+                  "snippet": {
+                    "text": "Для чужой карты возвращается 404, как и для отсутствующей карты."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-033",
+            "severity": "major",
+            "criterion": "set_consistent",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-068"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4",
+            "normRef": "RFC 9110 §15.5.4 и §15.5.5"
+          }
+        },
+        {
+          "ruleId": "F-002",
+          "ruleIndex": 20,
+          "level": "warning",
+          "message": {
+            "text": "Не описан учёт операций в иностранной валюте. Суммы заданы в тенге, но не сказано, как учитывается покупка в другой валюте по этой же карте: по какой сумме и по какому курсу она входит в счётчик, и что происходит при пересчёте суммы на проведении."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 37,
+                  "endLine": 37,
+                  "snippet": {
+                    "text": "**Ф-1.** Держатель активной карты KZT задаёт целый порог от 1 000 до 1 000 000 ₸ включительно."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-034",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "question",
+            "requirementIds": [
+              "R-013"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "F-004",
+          "ruleIndex": 21,
+          "level": "warning",
+          "message": {
+            "text": "Не описан частичный возврат и судьба уже отправленного уведомления. Возврат упомянут, но не сказано, как учитывается возврат части суммы и что происходит с уже отправленным уведомлением, если после возврата накопленная сумма снова ниже порога, а затем опять его достигает."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 38,
+                  "endLine": 38,
+                  "snippet": {
+                    "text": "Возврат уменьшает расходы месяца исходной покупки."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-035",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "question",
+            "requirementIds": [
+              "R-014"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "F-005",
+          "ruleIndex": 22,
+          "level": "warning",
+          "message": {
+            "text": "Не заданы текст и языки push-уведомления. Уведомление — единственный результат функции для клиента, но в документе нет его точного текста и языков. Сообщения клиенту в Казахстане готовят на казахском и русском. Тестировщику нечего сверять с ожидаемым результатом."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 39,
+                  "endLine": 39,
+                  "snippet": {
+                    "text": "**Ф-3.** Когда расходы переходят от суммы ниже порога к сумме, равной порогу или выше, клиент получает push."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-036",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "question",
+            "requirementIds": [
+              "R-015"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "F-012",
+          "ruleIndex": 23,
+          "level": "warning",
+          "message": {
+            "text": "Не описано поведение при недоставке push. Доставку push не гарантируют ни APNs, ни FCM, а клиент может отключить уведомления. В документе нет ни повторных попыток, ни резервного канала, ни признака «доставлено», поэтому неясно, считается ли требование выполненным, если уведомление отправлено, но не получено."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 39,
+                  "endLine": 39,
+                  "snippet": {
+                    "text": "**Ф-3.** Когда расходы переходят от суммы ниже порога к сумме, равной порогу или выше, клиент получает push."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-037",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "question",
+            "requirementIds": [
+              "R-015"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "F-006",
+          "ruleIndex": 24,
+          "level": "warning",
+          "message": {
+            "text": "В уведомлении передаются данные карты и сумма без правил показа. В уведомление попадают цифры карты и сумма расходов. Push показывается на экране блокировки и проходит через серверы Apple и Google, поэтому документ должен зафиксировать, какие именно данные допустимо показывать и нужно ли скрывать сумму. Правило маскирования номера карты и согласование с ИБ в документе отсутствуют."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 43,
+                  "endLine": 43,
+                  "snippet": {
+                    "text": "Сервис расходов → push: передать последние четыре цифры карты и сумму при достижении порога."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-038",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "question",
+            "requirementIds": [
+              "R-017"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3",
+            "normRef": "PCI DSS v4.0.1, требования 3.4.1 (маскирование PAN при показе) и 4.2.2 (PAN в пользовательских сообщениях)"
+          }
+        },
+        {
+          "ruleId": "F-007",
+          "ruleIndex": 25,
+          "level": "warning",
+          "message": {
+            "text": "Нефункциональные требования не содержат измеримых показателей нагрузки и доступности. В документе нет нагрузки, при которой должны выполняться требования ко времени, нет перцентиля и нет доступности. Требование «в течение X» без нагрузки и доли запросов нельзя ни спроектировать, ни принять на нагрузочном тесте."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 46,
+                  "endLine": 46,
+                  "snippet": {
+                    "text": "Сервис передаёт push на отправку в течение минуты после получения события."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-039",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "question",
+            "requirementIds": [
+              "R-018"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "F-008",
+          "ruleIndex": 26,
+          "level": "warning",
+          "message": {
+            "text": "Нет требований к безопасности, журналированию и защите персональных данных. Функция хранит и передаёт сведения об операциях клиента, но в документе нет ни одного требования к защите этих данных: кто имеет доступ, что пишется в журнал, как защищается хранение и передача. Сведения об операциях относятся к банковской тайне и персональным данным клиента."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 49,
+                  "endLine": 49,
+                  "snippet": {
+                    "text": "Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-040",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "question",
+            "requirementIds": [
+              "R-019"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3",
+            "normRef": "Закон РК «О персональных данных и их защите» от 21.05.2013 № 94-V"
+          }
+        },
+        {
+          "ruleId": "F-003",
+          "ruleIndex": 27,
+          "level": "warning",
+          "message": {
+            "text": "Не определён ключ идемпотентности и порядок обработки событий. Система получает события от процессинга, которые на практике приходят повторно и не по порядку. В документе не названо поле, по которому определяется дубль, срок хранения этого ключа и поведение при событии, пришедшем раньше предыдущего. Без этого повтор события удвоит сумму или вызовет второе уведомление."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 52,
+                  "endLine": 52,
+                  "snippet": {
+                    "text": "Повторная доставка одного события процессинга сохраняет исходный итог."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-041",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "question",
+            "requirementIds": [
+              "R-020"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "F-001",
+          "ruleIndex": 28,
+          "level": "warning",
+          "message": {
+            "text": "Не задан часовой пояс и момент времени, по которому считается период. Период учёта привязан ко времени, но часовой пояс не назван, и не сказано, какая метка времени определяет период — время авторизации или время проведения операции. С 1 марта 2024 года в Казахстане единый пояс UTC+5, поэтому «время Алматы» в старых системах и библиотеках может означать UTC+6. На границе периода одна и та же операция попадёт в разные периоды в зависимости от трактовки."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 64,
+                  "endLine": 64,
+                  "snippet": {
+                    "text": "Покупка 31 января в 23:58 на 4 000 ₸ | Провести 1 февраля в 00:03 по Алматы | Февральский счётчик вырос на 4 000 ₸"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-042",
+            "severity": "major",
+            "criterion": "set_complete",
+            "status": "question",
+            "requirementIds": [
+              "R-023"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3",
+            "normRef": "Единый часовой пояс UTC+5 в Республике Казахстан с 01.03.2024"
+          }
+        },
+        {
+          "ruleId": "set_comprehensible",
+          "ruleIndex": 29,
+          "level": "note",
+          "message": {
+            "text": "Перечень систем в разных разделах не совпадает. В блоке «Влияние на ИС» указаны мобильный банк, процессинг и сервис уведомлений. В архитектуре появляются сервис настроек и учёт расходов, на диаграмме последовательности — сервис расходов и настройки, в части B — AlertsController и хранилище настроек. В архитектуре нет связи учёта расходов с настройками, хотя по диаграмме последовательности сервис расходов запрашивает порог. Непонятно, сколько систем затронуто и какие из названий обозначают одно и то же."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 19,
+                  "endLine": 19,
+                  "snippet": {
+                    "text": "Мобильный банк, карточный процессинг, сервис уведомлений"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 26,
+                  "endLine": 26,
+                  "snippet": {
+                    "text": "Мобильное приложение → сервис настроек. Карточный процессинг → учёт расходов → сервис push."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 43,
+                  "endLine": 43,
+                  "snippet": {
+                    "text": "Сервис расходов → настройки: получить порог карты."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 130,
+                  "endLine": 130,
+                  "snippet": {
+                    "text": "Приложение → AlertsController → хранилище настроек → AlertsController → приложение."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-043",
+            "severity": "minor",
+            "criterion": "set_comprehensible",
+            "status": "downgraded",
+            "requirementIds": [
+              "R-007",
+              "R-010",
+              "R-017",
+              "R-049"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Comprehensible"
+          }
+        },
+        {
+          "ruleId": "L-005",
+          "ruleIndex": 30,
+          "level": "note",
+          "message": {
+            "text": "Время без измеримой границы: «в момент покупки». Формулировка «в момент покупки» допускает разные прочтения; исполнитель и тестировщик не смогут одинаково определить, выполнено ли требование (ISO/IEC/IEEE 29148:2018 §5.2.7)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 23,
+                  "endLine": 23,
+                  "snippet": {
+                    "text": "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-044",
+            "severity": "minor",
+            "criterion": "verifiable",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-009"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Verifiable; IEEE 830-1998 §4.3.6"
+          }
+        },
+        {
+          "ruleId": "set_consistent",
+          "ruleIndex": 0,
+          "level": "note",
+          "message": {
+            "text": "Цель «в момент покупки» не согласуется с учётом только проведённых покупок. Цель — сообщить клиенту о достижении бюджета в момент покупки. Но Ф-2 учитывает только проведённые покупки, а нефункциональное требование отсчитывает минуту от получения события процессинга. Значит, push приходит после проведения, и критерий приёмки сам показывает разрыв между покупкой и проведением."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 23,
+                  "endLine": 23,
+                  "snippet": {
+                    "text": "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 38,
+                  "endLine": 38,
+                  "snippet": {
+                    "text": "В расходы входят проведённые покупки."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 46,
+                  "endLine": 46,
+                  "snippet": {
+                    "text": "Сервис передаёт push на отправку в течение минуты после получения события."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-045",
+            "severity": "minor",
+            "criterion": "set_consistent",
+            "status": "downgraded",
+            "requirementIds": [
+              "R-009",
+              "R-014",
+              "R-018"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4"
+          }
+        },
+        {
+          "ruleId": "set_comprehensible",
+          "ruleIndex": 29,
+          "level": "note",
+          "message": {
+            "text": "Порог назван по-разному: бюджет, лимит, amount. В цели порог назван «личным бюджетом», в URL и поле БД — limit, в параметре API — amount. Тем же словом «сумма» в документе называется сумма покупки. Поведение от этого не меняется, но связать понятия разных разделов становится сложнее."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 23,
+                  "endLine": 23,
+                  "snippet": {
+                    "text": "Дать клиенту возможность узнать о достижении личного бюджета"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 108,
+                  "endLine": 108,
+                  "snippet": {
+                    "text": "Dev: `/alerts/saveLimit"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 143,
+                  "endLine": 143,
+                  "snippet": {
+                    "text": "Порог в тенге | `limit_kzt"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-046",
+            "severity": "minor",
+            "criterion": "set_comprehensible",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-009",
+              "R-034",
+              "R-052"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Comprehensible"
+          }
+        },
+        {
+          "ruleId": "set_comprehensible",
+          "ruleIndex": 29,
+          "level": "note",
+          "message": {
+            "text": "Сумма расходов за месяц названа по-разному, и неясно, что проверять. Одна и та же величина называется «сумма за месяц», «накопленная сумма», «накопленные расходы», «итог» и «счётчик». Ни один термин не определён. Критерии «Итог 50 000 ₸» и «Счётчик показывает» не говорят, где смотреть результат, поэтому однозначно решить, пройден тест или нет, нельзя."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 29,
+                  "endLine": 29,
+                  "snippet": {
+                    "text": "сумма за месяц и кнопка «Сохранить»"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 126,
+                  "endLine": 126,
+                  "snippet": {
+                    "text": "Изменение порога сохраняет накопленные расходы."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 63,
+                  "endLine": 63,
+                  "snippet": {
+                    "text": "Итог 50 000 ₸ и один push"
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 65,
+                  "endLine": 65,
+                  "snippet": {
+                    "text": "Счётчик показывает 19 900 ₸"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-047",
+            "severity": "minor",
+            "criterion": "set_comprehensible",
+            "status": "downgraded",
+            "requirementIds": [
+              "R-011",
+              "R-048",
+              "R-022",
+              "R-024"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Comprehensible"
+          }
+        },
+        {
+          "ruleId": "complete",
+          "ruleIndex": 9,
+          "level": "note",
+          "message": {
+            "text": "В процессе нет проверок включения уведомления и уже отправленного push. Процесс идёт от проверки порога сразу к отправке. В нём нет ветвлений «уведомление выключено» и «push за месяц уже отправлен». Если реализовать процесс как написано, push уйдёт при выключенной настройке или повторно."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 34,
+                  "endLine": 34,
+                  "snippet": {
+                    "text": "проверка порога → при достижении отправка push → завершение"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-048",
+            "severity": "minor",
+            "criterion": "complete",
+            "status": "downgraded",
+            "requirementIds": [
+              "R-012"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "L-008",
+          "ruleIndex": 31,
+          "level": "note",
+          "message": {
+            "text": "В одном пункте несколько утверждений (2). Пункт объединяет несколько самостоятельных требований под одним идентификатором. Их нельзя по отдельности принять, отклонить, покрыть тестом и оттрассировать."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 37,
+                  "endLine": 37,
+                  "snippet": {
+                    "text": "**Ф-1.** Держатель активной карты KZT задаёт целый порог от 1 000 до 1 000 000 ₸ включительно."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-049",
+            "severity": "minor",
+            "criterion": "singular",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-013"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Singular"
+          }
+        },
+        {
+          "ruleId": "T-006",
+          "ruleIndex": 32,
+          "level": "note",
+          "message": {
+            "text": "Требования не ранжированы по важности. Нет приоритетов: при нехватке времени неясно, что обязательно к выпуску, а что можно отложить."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 37,
+                  "endLine": 37,
+                  "snippet": {
+                    "text": "**Ф-1.** Держатель активной карты KZT задаёт целый порог от 1 000 до 1 000 000 ₸ включительно."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-050",
+            "severity": "minor",
+            "criterion": "ranked",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-013"
+            ],
+            "scope": "set",
+            "standardRef": "IEEE 830-1998 §4.3.5 Ranked for importance and/or stability"
+          }
+        },
+        {
+          "ruleId": "L-008",
+          "ruleIndex": 31,
+          "level": "note",
+          "message": {
+            "text": "В одном пункте несколько утверждений (4). Пункт объединяет несколько самостоятельных требований под одним идентификатором. Их нельзя по отдельности принять, отклонить, покрыть тестом и оттрассировать."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 38,
+                  "endLine": 38,
+                  "snippet": {
+                    "text": "**Ф-2.** Месяц определяется по дате совершения покупки в Алматы."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-051",
+            "severity": "minor",
+            "criterion": "singular",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-014"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Singular"
+          }
+        },
+        {
+          "ruleId": "L-008",
+          "ruleIndex": 31,
+          "level": "note",
+          "message": {
+            "text": "В одном пункте несколько утверждений (2). Пункт объединяет несколько самостоятельных требований под одним идентификатором. Их нельзя по отдельности принять, отклонить, покрыть тестом и оттрассировать."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 39,
+                  "endLine": 39,
+                  "snippet": {
+                    "text": "**Ф-3.** Когда расходы переходят от суммы ниже порога к сумме, равной порогу или выше, клиент получает push."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-052",
+            "severity": "minor",
+            "criterion": "singular",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-015"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Singular"
+          }
+        },
+        {
+          "ruleId": "L-008",
+          "ruleIndex": 31,
+          "level": "note",
+          "message": {
+            "text": "В одном пункте несколько утверждений (2). Пункт объединяет несколько самостоятельных требований под одним идентификатором. Их нельзя по отдельности принять, отклонить, покрыть тестом и оттрассировать."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 40,
+                  "endLine": 40,
+                  "snippet": {
+                    "text": "**Ф-4.** При изменении порога накопленная сумма сохраняется."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-053",
+            "severity": "minor",
+            "criterion": "singular",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-016"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Singular"
+          }
+        },
+        {
+          "ruleId": "set_complete",
+          "ruleIndex": 1,
+          "level": "note",
+          "message": {
+            "text": "Не определено, какой порог применяется, если его сменили во время обработки покупки. Порог читается в момент обработки события, а клиент может заменить настройку между покупкой и обработкой. Пример: расходы 49 000 ₸, порог 50 000 ₸, покупка на 2 000 ₸ в 12:00:00, клиент меняет порог на 60 000 ₸ в 12:00:10, событие приходит в 12:00:30. Неясно, применяется ли порог на момент покупки, то есть будет push, или на момент обработки, то есть push не будет."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 43,
+                  "endLine": 43,
+                  "snippet": {
+                    "text": "Сервис расходов → настройки: получить порог карты."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 120,
+                  "endLine": 120,
+                  "snippet": {
+                    "text": "Заменить настройку и вернуть результат сохранения."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-054",
+            "severity": "minor",
+            "criterion": "set_complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-017",
+              "R-044"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "unambiguous",
+          "ruleIndex": 14,
+          "level": "note",
+          "message": {
+            "text": "Не ясно, к какой сущности относится каждый атрибут. В одном списке смешаны атрибуты операции (идентификатор, сумма) и атрибуты карты за месяц (признак отправки, порог). Неясно, хранится ли признак отправки по операции или по карте за месяц. Модель данных и ключи придётся придумывать."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 49,
+                  "endLine": 49,
+                  "snippet": {
+                    "text": "Хранить идентификатор карты, месяц, идентификатор операции"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-055",
+            "severity": "minor",
+            "criterion": "unambiguous",
+            "status": "downgraded",
+            "requirementIds": [
+              "R-019"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Unambiguous; IEEE 830-1998 §4.3.2"
+          }
+        },
+        {
+          "ruleId": "L-008",
+          "ruleIndex": 31,
+          "level": "note",
+          "message": {
+            "text": "В одном пункте несколько утверждений (2). Пункт объединяет несколько самостоятельных требований под одним идентификатором. Их нельзя по отдельности принять, отклонить, покрыть тестом и оттрассировать."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 52,
+                  "endLine": 52,
+                  "snippet": {
+                    "text": "Приложение читает и сохраняет настройки через дочерний документ «Уведомление о расходах по карте — REST API»."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-056",
+            "severity": "minor",
+            "criterion": "singular",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-020"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Singular"
+          }
+        },
+        {
+          "ruleId": "verifiable",
+          "ruleIndex": 7,
+          "level": "note",
+          "message": {
+            "text": "Не проверяется, что push не отправлен. Порог подобран так, что перевод, если его ошибочно учесть, переведёт расходы через порог. Ожидаемый результат проверяет только счётчик и молчит о push. Лишнее уведомление клиенту этот тест не поймает."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 65,
+                  "endLine": 65,
+                  "snippet": {
+                    "text": "Счётчик показывает 19 900 ₸"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-057",
+            "severity": "minor",
+            "criterion": "verifiable",
+            "status": "downgraded",
+            "requirementIds": [
+              "R-024"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Verifiable; IEEE 830-1998 §4.3.6"
+          }
+        },
+        {
+          "ruleId": "T-001",
+          "ruleIndex": 10,
+          "level": "note",
+          "message": {
+            "text": "Не заполнено: Request URL → Prod. Значение отсутствует. Если поле не применимо, это нужно написать явно; иначе неизвестно, забыли его или оно не нужно."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 108,
+                  "endLine": 108,
+                  "snippet": {
+                    "text": "**Request URL** | Dev: `/alerts/saveLimit` . Prod: —"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-058",
+            "severity": "minor",
+            "criterion": "complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-034"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "T-001",
+          "ruleIndex": 10,
+          "level": "note",
+          "message": {
+            "text": "Не заполнено: Swagger. Значение отсутствует. Если поле не применимо, это нужно написать явно; иначе неизвестно, забыли его или оно не нужно."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 110,
+                  "endLine": 110,
+                  "snippet": {
+                    "text": "**Swagger** | —"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-059",
+            "severity": "minor",
+            "criterion": "complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-036"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "set_complete",
+          "ruleIndex": 1,
+          "level": "note",
+          "message": {
+            "text": "Не определено «прежнее состояние» при отклонении первого сохранения. При отклонении суммы метод должен вернуть прежнее состояние, но при первом сохранении действующей настройки ещё нет. Пример: клиент впервые сохраняет порог 999 ₸. Неясно, какие amount и enabled вернутся в ответе и останется ли настройка несозданной."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 121,
+                  "endLine": 121,
+                  "snippet": {
+                    "text": "При отклонении суммы вернуть прежнее состояние и результат ERROR."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 125,
+                  "endLine": 125,
+                  "snippet": {
+                    "text": "Повторное сохранение заменяет действующую настройку."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-060",
+            "severity": "minor",
+            "criterion": "set_complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-045",
+              "R-047"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "complete",
+          "ruleIndex": 9,
+          "level": "note",
+          "message": {
+            "text": "Правило не называет ни параметр, ни сами границы. В правиле нет предмета и числовых границ: читатель должен сам догадаться, что речь о пороге и о каком диапазоне. Отдельно правило проверить нельзя, а при изменении диапазона в другом месте оно станет неверным незаметно."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 124,
+                  "endLine": 124,
+                  "snippet": {
+                    "text": "Целое число тенге, обе границы включены."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-061",
+            "severity": "minor",
+            "criterion": "complete",
+            "status": "downgraded",
+            "requirementIds": [
+              "R-046"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "unambiguous",
+          "ruleIndex": 14,
+          "level": "note",
+          "message": {
+            "text": "Не определено, какой идентификатор карты передаётся. Не сказано, что такое «идентификатор карты»: внутренний ключ, токен или номер карты. Набор допустимых символов тоже не задан. От этого зависят валидация, маскирование в логах и требования к защите данных клиента."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 142,
+                  "endLine": 142,
+                  "snippet": {
+                    "text": "Идентификатор карты | `card_id"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-062",
+            "severity": "minor",
+            "criterion": "unambiguous",
+            "status": "downgraded",
+            "requirementIds": [
+              "R-051"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Unambiguous; IEEE 830-1998 §4.3.2"
+          }
+        },
+        {
+          "ruleId": "A-004",
+          "ruleIndex": 33,
+          "level": "note",
+          "message": {
+            "text": "Указан Content-Type, хотя тело запроса не используется. Тип содержимого описывает тело запроса. Если тела нет, заголовок лишний; если тело есть, оно не описано."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 147,
+                  "endLine": 147,
+                  "snippet": {
+                    "text": "**Content-Type:** `application/json` ."
+                  }
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 148,
+                  "endLine": 148,
+                  "snippet": {
+                    "text": "Тело не используется."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-063",
+            "severity": "minor",
+            "criterion": "set_consistent",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-054",
+              "R-055"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Consistent; IEEE 830-1998 §4.3.4"
+          }
+        },
+        {
+          "ruleId": "L-002",
+          "ruleIndex": 34,
+          "level": "note",
+          "message": {
+            "text": "Открытый перечень: «и далее». Формулировка «и далее» допускает разные прочтения; исполнитель и тестировщик не смогут одинаково определить, выполнено ли требование (ISO/IEC/IEEE 29148:2018 §5.2.7)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 151,
+                  "endLine": 151,
+                  "snippet": {
+                    "text": "Если результат 400, 401 и далее — неуспешный."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-064",
+            "severity": "minor",
+            "criterion": "complete",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-056"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "unambiguous",
+          "ruleIndex": 14,
+          "level": "note",
+          "message": {
+            "text": "Слово «результат» означает и HTTP-код, и поле result. В ответе есть поле result со значениями OK и ERROR, а здесь «результатом» назван HTTP-код. Поэтому неясно, считается ли успешным ответ 200 с result=ERROR. От трактовки зависит, как приложение и автотесты определят исход сохранения."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 151,
+                  "endLine": 151,
+                  "snippet": {
+                    "text": "Если результат 200 или 201 — успешный."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-065",
+            "severity": "minor",
+            "criterion": "unambiguous",
+            "status": "downgraded",
+            "requirementIds": [
+              "R-056"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Unambiguous; IEEE 830-1998 §4.3.2"
+          }
+        },
+        {
+          "ruleId": "verifiable",
+          "ruleIndex": 7,
+          "level": "note",
+          "message": {
+            "text": "Тексты ошибок не связаны с их причинами. Не определено, текст в message свободный или берётся из фиксированного набора, и какой текст соответствует какой причине отказа. Приложение показывает ошибку под полем ввода, поэтому без такого соответствия нельзя задать ожидаемый результат теста."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 158,
+                  "endLine": 158,
+                  "snippet": {
+                    "text": "message` | string | При ошибке | Описание ошибки"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-066",
+            "severity": "minor",
+            "criterion": "verifiable",
+            "status": "downgraded",
+            "requirementIds": [
+              "R-060"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Verifiable; IEEE 830-1998 §4.3.6"
+          }
+        },
+        {
+          "ruleId": "A-007",
+          "ruleIndex": 19,
+          "level": "note",
+          "message": {
+            "text": "Статус 200 подписан как «created» — это название статуса 201. Код и его название не совпадают. Неясно, какой статус должен вернуть сервер: 200 или 201."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 165,
+                  "endLine": 165,
+                  "snippet": {
+                    "text": "200. Successful — Created"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-067",
+            "severity": "minor",
+            "criterion": "correct",
+            "status": "confirmed",
+            "requirementIds": [
+              "R-062"
+            ],
+            "scope": "requirement",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.5 Correct; IEEE 830-1998 §4.3.1",
+            "normRef": "RFC 9110 §15 (коды состояния)"
+          }
+        },
+        {
+          "ruleId": "F-010",
+          "ruleIndex": 35,
+          "level": "note",
+          "message": {
+            "text": "Нет плана отката и способа отключить функцию. В документе нет описания, как отключить функцию или откатить изменение, если после выпуска уведомления начнут уходить ошибочно."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 23,
+                  "endLine": 23,
+                  "snippet": {
+                    "text": "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-068",
+            "severity": "minor",
+            "criterion": "set_complete",
+            "status": "question",
+            "requirementIds": [
+              "R-009"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "F-011",
+          "ruleIndex": 36,
+          "level": "note",
+          "message": {
+            "text": "Нет требований к мониторингу и оповещению о сбоях. Не сказано, по каким показателям эксплуатация поймёт, что уведомления перестали уходить или уходят с задержкой."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 23,
+                  "endLine": 23,
+                  "snippet": {
+                    "text": "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-069",
+            "severity": "minor",
+            "criterion": "set_complete",
+            "status": "question",
+            "requirementIds": [
+              "R-009"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        },
+        {
+          "ruleId": "F-009",
+          "ruleIndex": 37,
+          "level": "note",
+          "message": {
+            "text": "Не задан срок хранения данных. Перечислено, что хранить, но не сказано, как долго и что происходит с данными после закрытия карты или отключения функции."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/requirements.md"
+                },
+                "region": {
+                  "startLine": 49,
+                  "endLine": 49,
+                  "snippet": {
+                    "text": "Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге."
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "D-070",
+            "severity": "minor",
+            "criterion": "set_complete",
+            "status": "question",
+            "requirementIds": [
+              "R-019"
+            ],
+            "scope": "set",
+            "standardRef": "ISO/IEC/IEEE 29148:2018 §5.2.6 Complete; IEEE 830-1998 §4.3.3"
+          }
+        }
+      ],
+      "properties": {
+        "documentSha256": "e7dae55e5453a250d93e335f5ff9c7f775f4457ccddd333f4a67e47b20d74381",
+        "mode": "rules+llm",
+        "rulePacks": [
+          "core-29148@1",
+          "fintech-kz@1"
+        ]
+      }
+    }
+  ]
+}
