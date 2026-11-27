@@ -591,6 +591,8 @@ function questionBlock(ctx: Ctx, question: Question): Content {
       ),
     ]);
   }
+  if (question.scenario) rows.push(['Ситуация', body(question.scenario)]);
+  if (question.recommended) rows.push(['Рекомендация агента', body(`${question.recommended.label}${question.recommended.reason ? ` — ${question.recommended.reason}` : ''}`)]);
   rows.push(['Если ответа не будет', body(question.defaultAssumption)]);
   if (question.findingIds.length > 0) {
     rows.push(['Находки', { text: joined(question.findingIds.map((id) => link(ctx, id))), font: 'DejaVuMono', fontSize: 8 }]);

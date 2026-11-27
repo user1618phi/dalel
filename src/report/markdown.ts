@@ -124,6 +124,10 @@ export function questionBlock(q: Question, withAnswerSlot: boolean): string[] {
   out.push('');
   out.push(`**Вопрос:** ${q.text}`);
   out.push('');
+  if (q.scenario) {
+    out.push(`**Ситуация:** ${q.scenario}`);
+    out.push('');
+  }
   if (q.why) out.push(`**Зачем:** ${q.why}`);
   if (q.risk.note && q.risk.note !== q.why) out.push(`\n**Цена ошибки:** ${q.risk.note}`);
   out.push('');
@@ -131,6 +135,10 @@ export function questionBlock(q: Question, withAnswerSlot: boolean): string[] {
   out.push('| :--- | :--- |');
   for (const o of q.options) out.push(`| ${cell(o.label)} | ${cell(o.consequence)} |`);
   out.push('');
+  if (q.recommended) {
+    out.push(`**Рекомендация агента:** ${q.recommended.label}${q.recommended.reason ? ` — ${q.recommended.reason}` : ''}`);
+    out.push('');
+  }
   out.push(`**Если ответа не будет, принимаем:** ${q.defaultAssumption}`);
   out.push('');
   out.push(`**Закрывает находки:** ${q.findingIds.join(', ') || '—'}`);
@@ -171,7 +179,9 @@ export function renderMarkdown(report: Report): string {
     if (blockers.length > 0) {
       out.push('Вопросы, без ответа на которые нельзя начинать:');
       out.push('');
-      for (const q of blockers) out.push(`- ${q.text} — ${q.addressee} (${q.id})`);
+      for (const q of blockers) {
+        out.push(`- **${q.id}, ${q.addressee}.** ${q.text}${q.scenario ? ` Ситуация: ${q.scenario}` : ''}${q.recommended ? ` Рекомендация агента: ${q.recommended.label}.` : ''}`);
+      }
       out.push('');
     }
   }

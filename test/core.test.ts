@@ -202,6 +202,8 @@ function fakeClient(log: string[]): LlmClient {
                 { label: 'Да', consequence: 'Убрать ограничение из Ф-3.' },
                 { label: 'Нет', consequence: 'Уточнить Ф-4.' },
               ],
+              scenario: 'Порог 50 000 ₸ достигнут 10-го числа, 15-го порог изменён на 60 000 ₸, 20-го расходы достигли 60 000 ₸.',
+              recommended: { option: 2, reason: 'Ф-3 прямо ограничивает число уведомлений.' },
               defaultAssumption: 'Один push за месяц.',
               blocking: true,
               risk: { level: 'high', kind: 'customer', note: 'Жалобы клиентов.' },
@@ -250,6 +252,8 @@ describe('конвейер с моделью', () => {
 
     const q = report.questions.find((x) => x.text.startsWith('Допускается'));
     expect(q?.blocking).toBe(true);
+    expect(q?.scenario).toContain('60 000 ₸');
+    expect(q?.recommended).toEqual({ label: 'Нет', reason: 'Ф-3 прямо ограничивает число уведомлений.' });
     // The model's question absorbed the rule-pack question about refunds, so it is not asked twice.
     expect(report.questions.filter((x) => /возврат/i.test(x.text))).toHaveLength(0);
     expect(report.questions[0]?.blocking).toBe(true);
@@ -265,6 +269,8 @@ describe('конвейер с моделью', () => {
 
     const md = renderMarkdown(report);
     expect(md).toContain('### Главное за минуту');
+    expect(md).toContain('**Рекомендация агента:** Нет — Ф-3 прямо ограничивает число уведомлений.');
+    expect(md).toContain('**Ситуация:** Порог 50 000 ₸');
     expect(md).toContain('Чек-лист ревью из шаблона документа');
     for (const h of ['## 1. Паспорт прогона', '## 2. Как агент нарезал требования', '## 3. Проверка каждого требования', '## 4. Проверка всего набора требований', '## 5. Вопросы автору', '## 6. Сводка', '## 7. Итог']) {
       expect(md).toContain(h);

@@ -194,6 +194,10 @@ export interface Question {
   defaultAssumption: string;
   blocking: boolean;
   risk: { level: 'high' | 'medium' | 'low'; kind: RiskKind; note: string };
+  /** A concrete situation from the document, with numbers, where the options lead to different results. */
+  scenario?: string;
+  /** The option the agent itself would choose, and why. */
+  recommended?: { label: string; reason: string };
   answer?: string;
 }
 

@@ -624,6 +624,8 @@ function renderQuestion(ctx: Ctx, question: Question): string {
     ['Риск', text(question.risk.note)],
   ];
   if (options.length > 0) rows.push(['Варианты и последствия', list(options)]);
+  if (question.scenario) rows.push(['Ситуация', text(question.scenario)]);
+  if (question.recommended) rows.push(['Рекомендация агента', text(`${question.recommended.label}${question.recommended.reason ? ` — ${question.recommended.reason}` : ''}`)]);
   rows.push(['Если ответа не будет', text(question.defaultAssumption)]);
   if (question.findingIds.length > 0) {
     rows.push(['Находки', question.findingIds.map((id) => findingLink(ctx, id)).join(', ')]);

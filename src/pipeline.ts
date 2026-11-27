@@ -434,7 +434,7 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
         });
         llmUsed = true;
         if (res.trace.length > 0) traceRaw = res.trace;
-        for (const f of res.findings.slice(0, 14)) {
+        for (const f of res.findings.slice(0, 18)) {
           const evidence: Evidence[] = [];
           for (const q of f.quotes) {
             const e = verifier.verify(q);
@@ -644,6 +644,8 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
           defaultAssumption: q.defaultAssumption,
           blocking: q.blocking,
           risk: { level, kind, note: q.risk?.note ?? '' },
+          ...(q.scenario ? { scenario: q.scenario } : {}),
+          ...(q.recommended && q.options[q.recommended.option - 1] ? { recommended: { label: q.options[q.recommended.option - 1]?.label ?? '', reason: q.recommended.reason } } : {}),
         });
       }
     } catch (e) {
