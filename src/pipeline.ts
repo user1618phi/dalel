@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { type LlmClient, LlmCache, type LlmUsage, completeJson, mapLimit } from './llm/index.js';
+import { type LlmClient, LlmCache, type LlmUsage, completeJson, completeText, mapLimit } from './llm/index.js';
 import { loadDocument } from './load/index.js';
 import { type QuestionSeed, type RuleFinding, runRules } from './rules/index.js';
 import { type RulePack, loadPacks, packApplies } from './rules/packs.js';
@@ -15,6 +15,7 @@ import {
   AnswersSchema,
   CLARIFY_SYSTEM,
   ClarifySchema,
+  FREE_SYSTEM,
   GAPS_SYSTEM,
   OPPONENT_SYSTEM,
   SWEEP_SYSTEM,
@@ -421,6 +422,14 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
       }
     });
 
+    // --- free-form reviewer: runs alongside the structured agents, its prose feeds the second look ---
+    const freeReview: Promise<string> = opts.skipStages?.includes('sweep')
+      ? Promise.resolve('')
+      : completeText(client, cache, usage, { system: FREE_SYSTEM, user: outgoing(docText) }).catch((e: unknown) => {
+          diagnostics.push({ level: 'warning', code: 'llm_stage_failed', message: `Этап «вольный ревьюер» не выполнен: ${e instanceof Error ? e.message : String(e)}`, hint: 'Повторный взгляд выполнен без вольного отчёта.' });
+          return '';
+        });
+
     // --- set-level analysis: consistency, then gaps ---
     const setStages = [
       { name: 'согласованность набора', system: SET_SYSTEM, extra: '', tag: 'consistency' as Stage },
@@ -506,17 +515,17 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
 
     // --- second look: what is still missing from the list ---
     if (llmUsed && !opts.skipStages?.includes('sweep')) {
-      progress('повторный взгляд моделью');
+      progress('вольный ревьюер и повторный взгляд');
       try {
+        const freeText = await freeReview;
         const found = [...ruled.findings.map((f) => `- [стр. ${f.evidence[0]?.lineStart ?? '—'}] ${f.title}`), ...kept.map((d) => `- [стр. ${d.evidence[0]?.lineStart ?? '—'}] ${d.title}`)].join('\n');
         const res = await completeJson(client, cache, usage, {
           stage: 'повторный взгляд',
           system: SWEEP_SYSTEM,
-          user: outgoing(`${docText}\n\nСписок пунктов:\n${unitList(reqs)}\n\nУже найденные замечания (не повторять):\n${found}`),
+          user: outgoing(`${docText}\n\nСписок пунктов:\n${unitList(reqs)}\n\nУже найденные замечания (не повторять):\n${found}\n\nВольный отчёт другого ревьюера (источник кандидатов, проверять по документу):\n<review>\n${freeText.slice(0, 40000) || 'нет'}\n</review>`),
           schema: SetSchema,
         });
-        for (const f of res.findings.slice(0, 10)) {
-          if (toSeverity(f.severity, 'major') === 'minor') continue;
+        for (const f of res.findings.slice(0, 24)) {
           const evidence: Evidence[] = [];
           for (const q of f.quotes) {
             const e = verifier.verify(q);

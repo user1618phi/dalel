@@ -330,6 +330,22 @@ export async function completeJson<T>(client: LlmClient, cache: LlmCache, usage:
   throw new Error(`Этап «${call.stage}»: ответ модели не соответствует схеме (${lastProblem})`);
 }
 
+/** Plain-text call with the same cache; used by the free-form reviewer, whose answer is deliberately unstructured. */
+export async function completeText(client: LlmClient, cache: LlmCache, usage: LlmUsage, call: { system: string; user: string }): Promise<string> {
+  const key = createHash('sha256').update([client.cacheId, 'text', call.system, call.user].join('\u0000')).digest('hex').slice(0, 40);
+  const hit = cache.get(key);
+  if (hit) {
+    usage.cacheHits++;
+    return hit.text;
+  }
+  const res = await client.complete({ system: call.system, user: call.user, json: false });
+  usage.calls++;
+  usage.tokensIn += res.tokensIn;
+  usage.tokensOut += res.tokensOut;
+  if (res.text.trim() !== '') cache.set(key, res);
+  return res.text;
+}
+
 export async function mapLimit<A, B>(items: A[], limit: number, fn: (item: A, index: number) => Promise<B>): Promise<B[]> {
   const out: B[] = new Array<B>(items.length);
   let next = 0;

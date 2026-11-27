@@ -134,9 +134,15 @@ function fakeClient(log: string[]): LlmClient {
             : [],
         });
       }
+      if (req.system.includes('вольное ревью')) {
+        log.push('free');
+        expect(req.json).toBe(false);
+        return { text: '- строка 29: «сумма за месяц» — не сказано, что видит клиент до первого сохранения порога.', tokensIn: 10, tokensOut: 10 };
+      }
       if (req.system.includes('Этап: повторный взгляд')) {
         log.push('sweep');
         expect(req.user).toContain('Уже найденные замечания');
+        expect(req.user).toContain('до первого сохранения порога');
         return reply({
           findings: [
             { criterion: 'set_complete', severity: 'major', title: 'Не сказано, что видит клиент до первого сохранения порога', explanation: 'Экран показывает поле порога, но начальное значение не задано.', quotes: ['На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить».'], counterexample: null, recommendation: 'Описать начальное состояние экрана.' },
@@ -246,6 +252,7 @@ describe('конвейер с моделью', () => {
     expect(log).toContain('set');
     expect(log).toContain('gaps');
     expect(log.filter((x) => x === 'gaps')).toHaveLength(2);
+    expect(log).toContain('free');
     expect(log).toContain('sweep');
     expect(log).toContain('opponent');
     // The second look adds what was missing and does not re-add what the first passes already reported.
