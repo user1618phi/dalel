@@ -23,7 +23,7 @@ npm run check -- docs/requirements.md reports/requirements.report.md
 npm run check -- docs/requirements.md reports/requirements.report.md --all
 ```
 
-<!-- VIDEO: сюда вставляется строка со ссылкой на демо-видео -->
+**Демо-видео (4 минуты): запуск агента, ход анализа и готовый отчёт** — [смотреть](https://drive.google.com/file/d/1sFhBe2yyPLuDCMklWPEcW5bmIcQveEUj/view)
 
 «Дәлел» по-казахски — доказательство. Решение для BCC-HUB x MNU FinTech Hackathon.
 
