@@ -144,12 +144,24 @@ export interface Counterexample {
   arithmeticChecked?: boolean;
 }
 
+export type Stage = 'rules' | 'analyze' | 'consistency' | 'gaps' | 'sweep';
+
+export const STAGE_LABEL: Record<Stage, string> = {
+  rules: 'Линтер (правила без модели)',
+  analyze: 'Аналитик (каждый пункт)',
+  consistency: 'Ревизор согласованности',
+  gaps: 'Искатель пропусков',
+  sweep: 'Повторный взгляд',
+};
+
 export type FindingStatus = 'confirmed' | 'downgraded' | 'question' | 'rejected' | 'resolved';
 
 export interface Finding {
   /** D-001… */
   id: string;
   source: 'rule' | 'llm';
+  /** Which agent of the pipeline produced the finding; used for the ablation table. */
+  stage?: Stage;
   /** Rule id for deterministic findings, e.g. «A-001». */
   ruleId?: string;
   scope: 'requirement' | 'set';
@@ -189,7 +201,8 @@ export interface Question {
   why: string;
   findingIds: string[];
   rootCauseId?: string;
-  options: { label: string; consequence: string }[];
+  /** `test` — the check that becomes valid if the author picks this option. */
+  options: { label: string; consequence: string; test?: string }[];
   /** What the team will assume if nobody answers. */
   defaultAssumption: string;
   blocking: boolean;
@@ -220,7 +233,7 @@ export interface ChecklistItem {
 export interface TestCase {
   /** TC-001… */
   id: string;
-  kind: 'boundary' | 'counterexample' | 'acceptance';
+  kind: 'boundary' | 'counterexample' | 'acceptance' | 'decision';
   title: string;
   requirementIds: string[];
   given: string[];
@@ -297,7 +310,7 @@ export interface Report {
   /** Test design derived from the document: boundaries, counterexamples, existing acceptance criteria. */
   testCases?: TestCase[];
   /** Present when answers from the author were applied. */
-  answersApplied?: { count: number; resolved: number; file?: string };
+  answersApplied?: { count: number; resolved: number; file?: string; before?: { findings: number; critical: number; major: number; headline: string } };
 }
 
 export const CRITERION_LABEL: Record<Criterion, string> = {

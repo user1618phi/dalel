@@ -9,18 +9,29 @@ import { renderMarkdown, renderQuestionsFile } from './report/markdown.js';
 import { renderFeature } from './stages/testcases.js';
 import type { Report, SourceDoc } from './types.js';
 
-type Format = 'md' | 'json' | 'html' | 'pdf' | 'sarif';
-const FORMATS: Format[] = ['md', 'json', 'html', 'pdf', 'sarif'];
+type Format = 'md' | 'json' | 'html' | 'pdf' | 'sarif' | 'csv';
+const FORMATS: Format[] = ['md', 'json', 'html', 'pdf', 'sarif', 'csv'];
+
+/** Findings as a table for import into a tracker (Jira, YouTrack) or a spreadsheet. */
+function renderCsv(report: Report): string {
+  const esc = (v: string) => `"${v.replace(/"/g, '""').replace(/\r?\n/g, ' ')}"`;
+  const rows = [['id', 'severity', 'status', 'criterion', 'rule', 'requirements', 'line', 'title', 'quote', 'explanation', 'recommendation']];
+  for (const f of report.findings) {
+    rows.push([f.id, f.severity, f.status, f.criterion, f.ruleId ?? 'model', f.requirementIds.join(' '), String(f.evidence[0]?.lineStart ?? ''), f.title, f.evidence[0]?.quote ?? '', f.explanation, f.recommendation]);
+  }
+  // BOM: Excel otherwise reads UTF-8 Cyrillic as a legacy code page.
+  return `\uFEFF${rows.map((r) => r.map(esc).join(';')).join('\r\n')}\r\n`;
+}
 
 const HELP = `Dalel — агент статической проверки документа требований.
 
 Запуск:
   dalel <файл требований> <файл отчёта> [параметры]
 
-Формат отчёта определяется расширением файла отчёта: .md, .json, .html, .pdf, .sarif
+Формат отчёта определяется расширением файла отчёта: .md, .json, .html, .pdf, .sarif, .csv
 
 Параметры:
-  --formats md,json,html,pdf,sarif  дополнительно записать отчёт в этих форматах рядом с основным
+  --formats md,json,html,pdf,sarif,csv  дополнительно записать отчёт в этих форматах рядом с основным
   --all                 записать все форматы, файл вопросов автору и тест-кейсы
   --questions <файл>    записать вопросы автору в отдельный файл для заполнения
   --tests <файл>        записать черновик тест-кейсов в формате Gherkin (.feature)
@@ -41,6 +52,10 @@ const HELP = `Dalel — агент статической проверки до�
   dalel eval [--llm]    замер качества на эталонных документах с внесёнными дефектами
   dalel coverage [отчёт.json] [каталог.yaml]  сверка отчёта с каталогом дефектов документа
   dalel compare <было.json> <стало.json>     что изменилось между двумя редакциями документа
+  dalel baseline <документ> <ответ.md>       контрольный опыт: один запрос к модели без конвейера
+  dalel stability <a.json> <b.json> …        насколько совпадают замечания между прогонами
+  dalel audit <отчёт.json> <документ>        точность отчёта: каждое замечание судит другая модель
+  dalel serve [--port 4173]                  веб-интерфейс на этой машине: загрузка документа, отчёт, ответы на вопросы
 
 ${PROVIDER_HELP}
 
@@ -51,7 +66,7 @@ interface Args {
   flags: Map<string, string | true>;
 }
 
-const VALUE_FLAGS = new Set(['formats', 'questions', 'answers', 'provider', 'model', 'packs', 'fail-on', 'out', 'tests']);
+const VALUE_FLAGS = new Set(['formats', 'questions', 'answers', 'provider', 'model', 'packs', 'fail-on', 'out', 'tests', 'baseline', 'port']);
 
 function parseArgs(argv: string[]): Args {
   const positional: string[] = [];
@@ -104,6 +119,8 @@ async function render(format: Format, report: Report, doc: SourceDoc | null): Pr
       return (await import('./report/pdf.js')).renderPdf(report);
     case 'sarif':
       return (await import('./report/sarif.js')).renderSarif(report);
+    case 'csv':
+      return renderCsv(report);
   }
 }
 
@@ -163,7 +180,45 @@ async function main(): Promise<number> {
 
   if (args.positional[0] === 'coverage') {
     const { runCoverage } = await import('./eval/coverage.js');
-    return runCoverage(args.positional[1] ?? 'reports/requirements.report.json', args.positional[2] ?? 'eval/case/gold.yaml', str('out') ?? 'docs/EVAL-case.md', log);
+    return runCoverage(args.positional[1] ?? 'reports/requirements.report.json', args.positional[2] ?? 'eval/case/gold.yaml', str('out') ?? 'docs/EVAL-case.md', log, str('baseline'));
+  }
+  if (args.positional[0] === 'baseline') {
+    const [, doc, target] = args.positional;
+    if (!doc || !target) throw new Error('Нужны два пути: dalel baseline <документ> <файл ответа>');
+    const provider = str('provider');
+    const model = str('model');
+    const client = createClient(process.env, { ...(provider ? { provider } : {}), ...(model ? { model } : {}) });
+    if (!client) throw new Error('Для baseline нужна модель: задайте ключ провайдера.');
+    return (await import('./eval/baseline.js')).runBaseline(client, doc, target, log);
+  }
+  if (args.positional[0] === 'serve') {
+    const provider = str('provider');
+    const model = str('model');
+    const client = args.flags.has('no-llm') ? null : createClient(process.env, { ...(provider ? { provider } : {}), ...(model ? { model } : {}) });
+    const port = Number(str('port') ?? '4173');
+    if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Порт должен быть числом от 1 до 65535.');
+    return (await import('./serve/index.js')).serve(client, port, log);
+  }
+  if (args.positional[0] === 'audit') {
+    const [, reportPath, doc] = args.positional;
+    if (!reportPath || !doc) throw new Error('Нужны два пути: dalel audit <отчёт.json> <документ>');
+    const provider = str('provider');
+    const model = str('model');
+    const client = createClient(process.env, { ...(provider ? { provider } : {}), ...(model ? { model } : {}) });
+    if (!client) throw new Error('Для audit нужна модель: задайте ключ провайдера.');
+    return (await import('./eval/audit.js')).runAudit(client, reportPath, doc, str('out') ?? 'docs/EVAL-precision.md', log);
+  }
+  if (args.positional[0] === 'stability') {
+    const files = args.positional.slice(1);
+    if (files.length < 2) throw new Error('Нужны хотя бы два отчёта в формате JSON: dalel stability <a.json> <b.json> …');
+    const text = (await import('./eval/stability.js')).renderStability(files);
+    const target = str('out');
+    if (target) {
+      mkdirSync(dirname(resolve(target)), { recursive: true });
+      writeFileSync(target, text);
+      log(`стабильность записана: ${target}`);
+    } else process.stdout.write(text);
+    return 0;
   }
 
   if (args.positional[0] === 'compare') {

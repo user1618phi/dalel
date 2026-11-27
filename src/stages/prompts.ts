@@ -69,6 +69,25 @@ export const GAPS_SYSTEM = `${BASE}
 
 ${SET_SCHEMA}`;
 
+export const SWEEP_SYSTEM = `${BASE}
+
+Этап: повторный взгляд. В запросе — список замечаний, которые уже найдены. Прочитай документ ещё раз глазами разработчика, который завтра начнёт писать код, и тестировщика, который должен написать по документу тест-кейсы, и назови существенные дефекты, которых в списке НЕТ.
+Проверь по очереди: каждый термин, от которого зависит расчёт или проверка, определён ли он; для каждого требования — можно ли написать тест с однозначным ожидаемым результатом; для каждого критерия приёмки — хватает ли исходных условий и однозначен ли результат; сходятся ли между собой разделы (цель, процесс, схема, данные, интерфейс, API, статусы, приёмка); нет ли ситуаций обычной работы, для которых поведение не записано.
+Не повторяй найденное даже другими словами: если твоя находка про то же место и ту же проблему, что и замечание из списка, пропусти её. Только critical и major. До 10 находок; если добавить нечего — пустой список findings. Поле trace оставь пустым списком.
+
+${SET_SCHEMA}`;
+
+export const AUDIT_SYSTEM = `${BASE}
+
+Этап: независимая проверка чужого отчёта. Тебе дан документ и замечания, которые выпустил другой ревьюер. Для каждого замечания реши по тексту документа:
+  valid   — дефект в документе действительно есть и описан верно;
+  partial — дефект есть, но описание или тяжесть неточны, либо замечание частично повторяет другое;
+  invalid — дефекта нет: документ прямо отвечает на замечание, либо это пожелание к проектированию, либо цитата не подтверждает сказанное.
+Суди строго и только по тексту документа. В reason — одно предложение; для invalid приведи место документа, которое снимает замечание.
+
+Схема ответа:
+{"verdicts":[{"id":"D-001","verdict":"valid","reason":"…"}]}`;
+
 export const OPPONENT_SYSTEM = `${BASE}
 
 Этап: оппонент. Ты защищаешь автора документа. Тебе дан документ и замечания ревьюера. Для каждого замечания попробуй его опровергнуть:
@@ -97,7 +116,7 @@ export const CLARIFY_SYSTEM = `${BASE}
    scenario — конкретная ситуация из этого документа с числами или датами, в которой варианты ответа дают разный результат (одно-два предложения): отвечающий должен увидеть развилку, а не абстрактную тему;
    recommended — option: номер варианта (с 1), который ты советуешь выбрать, и reason: почему, одно предложение с опорой на текст документа;
    why — что произойдёт в банке, если ответа не будет: деньги, клиент, регулятор, сроки;
-   options — от 2 до 4 взаимоисключающих ответов; consequence — что изменится в документе или системе при таком ответе;
+   options — от 2 до 4 взаимоисключающих ответов; consequence — что изменится в документе или системе при таком ответе; test — проверка, которая станет верной при этом ответе, одной строкой «Дано … Когда … Тогда …» с числами из ситуации;
    defaultAssumption — что команда примет, если ответа не будет;
    blocking — true, если без ответа нельзя начинать разработку этого места;
    risk — level: high | medium | low; kind: money | compliance | security | customer | operations | delivery; note — одно предложение о цене ошибки.
@@ -107,7 +126,7 @@ export const CLARIFY_SYSTEM = `${BASE}
 6. Если в запросе есть «Чек-лист ревью из шаблона документа», заполни его как черновик для ревьюера: для каждого пункта index выбери answer строго из его допустимых вариантов; basis — одно предложение с основанием, findingIds — находки, на которые опираешься. Ответ «Да» допустим только если в документе это действительно есть и к этому нет критичных и существенных находок. Если чек-листа нет, checklist — пустой список.
 
 Схема ответа:
-{"rootCauses":[{"title":"…","findingIds":["D-001","D-004"]}],"questions":[{"addressee":"…","text":"…","why":"…","scenario":"…","findingIds":["D-001"],"options":[{"label":"…","consequence":"…"}],"recommended":{"option":1,"reason":"…"},"defaultAssumption":"…","blocking":true,"risk":{"level":"high","kind":"money","note":"…"},"absorbs":["F-001"]}],"fixFirst":[{"findingId":"D-001","text":"…"}],"checklist":[{"index":1,"answer":"Нет","basis":"…","findingIds":["D-002"]}]}`;
+{"rootCauses":[{"title":"…","findingIds":["D-001","D-004"]}],"questions":[{"addressee":"…","text":"…","why":"…","scenario":"…","findingIds":["D-001"],"options":[{"label":"…","consequence":"…","test":"Дано … Когда … Тогда …"}],"recommended":{"option":1,"reason":"…"},"defaultAssumption":"…","blocking":true,"risk":{"level":"high","kind":"money","note":"…"},"absorbs":["F-001"]}],"fixFirst":[{"findingId":"D-001","text":"…"}],"checklist":[{"index":1,"answer":"Нет","basis":"…","findingIds":["D-002"]}]}`;
 
 export const ANSWERS_SYSTEM = `${BASE}
 
@@ -120,7 +139,7 @@ export const ANSWERS_SYSTEM = `${BASE}
 {"resolutions":[{"questionId":"Q-01","findingId":"D-003","status":"resolved","note":"одно предложение","proposedText":"…"}]}`;
 
 export const PROMPT_HASH = createHash('sha256')
-  .update([ANALYZE_SYSTEM, SET_SYSTEM, GAPS_SYSTEM, OPPONENT_SYSTEM, CLARIFY_SYSTEM, ANSWERS_SYSTEM].join('\u0000'))
+  .update([ANALYZE_SYSTEM, SET_SYSTEM, GAPS_SYSTEM, SWEEP_SYSTEM, OPPONENT_SYSTEM, CLARIFY_SYSTEM, ANSWERS_SYSTEM].join('\u0000'))
   .digest('hex')
   .slice(0, 12);
 
@@ -178,7 +197,7 @@ export const ClarifySchema = z.object({
         text: str,
         why: str.optional().default(''),
         findingIds: z.array(str).optional().default([]),
-        options: z.array(z.object({ label: str, consequence: str.optional().default('') })).optional().default([]),
+        options: z.array(z.object({ label: str, consequence: str.optional().default(''), test: str.optional().default('') })).optional().default([]),
         defaultAssumption: str.optional().default(''),
         blocking: z.boolean().optional().default(false),
         risk: z.object({ level: str, kind: str, note: str.optional().default('') }).optional(),
@@ -194,6 +213,10 @@ export const ClarifySchema = z.object({
     .array(z.object({ index: z.coerce.number(), answer: str, basis: str.optional().default(''), findingIds: z.array(str).optional().default([]) }))
     .optional()
     .default([]),
+});
+
+export const AuditSchema = z.object({
+  verdicts: z.array(z.object({ id: str, verdict: str, reason: str.optional().default('') })),
 });
 
 export const AnswersSchema = z.object({

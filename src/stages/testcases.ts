@@ -1,5 +1,5 @@
 import { stripMarkdown } from '../segment/index.js';
-import type { Finding, Requirement, TestCase } from '../types.js';
+import type { Finding, Question, Requirement, TestCase } from '../types.js';
 
 export interface Range {
   min: number;
@@ -59,7 +59,7 @@ export function rangeCovered(range: Range, reqs: Requirement[]): boolean {
  * Test design straight from the document: boundary values for every range, a scenario for every
  * counterexample, and the acceptance criteria the document already has.
  */
-export function deriveTestCases(reqs: Requirement[], findings: Finding[]): TestCase[] {
+export function deriveTestCases(reqs: Requirement[], findings: Finding[], questions: Question[] = []): TestCase[] {
   const cases: Omit<TestCase, 'id'>[] = [];
   const label = (id: string) => {
     const r = reqs.find((x) => x.id === id);
@@ -122,6 +122,21 @@ export function deriveTestCases(reqs: Requirement[], findings: Finding[]): TestC
       coveredByAcceptance: true,
     });
   }
+  // Once the author has decided, the test attached to the chosen option stops being hypothetical.
+  for (const q of questions) {
+    const chosen = q.answer ? q.options.find((o) => o.label === q.answer) : undefined;
+    if (!chosen?.test) continue;
+    const reqIds = [...new Set(q.findingIds.flatMap((id) => findings.find((f) => f.id === id)?.requirementIds ?? []))];
+    cases.push({
+      kind: 'decision',
+      title: `По ответу на ${q.id}: ${chosen.label}`,
+      requirementIds: reqIds,
+      given: q.scenario ? [q.scenario] : [],
+      when: [`Принято решение автора: ${chosen.label}`],
+      then: [chosen.test],
+      coveredByAcceptance: false,
+    });
+  }
   return cases.map((c, i) => ({ id: `TC-${String(i + 1).padStart(3, '0')}`, ...c }));
 }
 
@@ -131,7 +146,7 @@ export function renderFeature(documentName: string, cases: TestCase[]): string {
   const step = (keyword: string, lines: string[]) => lines.map((l, i) => `    ${i === 0 ? keyword : 'И'} ${l.replace(/\s+/g, ' ').trim()}`);
   for (const c of cases) {
     const undecided = c.kind === 'counterexample' || c.then.some((t) => t.startsWith('Ожидаемый результат не определён'));
-    const tags = [`@${c.kind === 'boundary' ? 'границы' : c.kind === 'counterexample' ? 'противоречие' : 'приёмка'}`, ...(undecided ? ['@требует_решения'] : []), ...(c.coveredByAcceptance ? [] : ['@нет_в_приёмке'])];
+    const tags = [`@${c.kind === 'boundary' ? 'границы' : c.kind === 'counterexample' ? 'противоречие' : c.kind === 'decision' ? 'решение_автора' : 'приёмка'}`, ...(undecided ? ['@требует_решения'] : []), ...(c.coveredByAcceptance ? [] : ['@нет_в_приёмке'])];
     out.push(`  ${tags.join(' ')}`);
     out.push(`  Сценарий: ${c.id} ${c.title.replace(/\s+/g, ' ')}`);
     out.push(...step('Дано', c.given.length > 0 ? c.given : ['исходное состояние не задано документом']));

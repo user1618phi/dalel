@@ -508,7 +508,7 @@ function joined(items: Content[], separator = ', '): Content[] {
 function testCasesBlock(ctx: Ctx): Content[] {
   const cases = ctx.report.testCases ?? [];
   if (cases.length === 0) return [];
-  const kind = { boundary: 'граница', counterexample: 'противоречие', acceptance: 'приёмка' } as const;
+  const kind = { boundary: 'граница', counterexample: 'противоречие', acceptance: 'приёмка', decision: 'по ответу' } as const;
   const missing = cases.filter((t) => !t.coveredByAcceptance).length;
   return [
     subHead('Черновик тест-кейсов'),

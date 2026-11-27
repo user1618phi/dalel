@@ -131,9 +131,10 @@ export function questionBlock(q: Question, withAnswerSlot: boolean): string[] {
   if (q.why) out.push(`**Зачем:** ${q.why}`);
   if (q.risk.note && q.risk.note !== q.why) out.push(`\n**Цена ошибки:** ${q.risk.note}`);
   out.push('');
-  out.push('| Вариант ответа | Что это меняет |');
-  out.push('| :--- | :--- |');
-  for (const o of q.options) out.push(`| ${cell(o.label)} | ${cell(o.consequence)} |`);
+  const withTests = q.options.some((o) => o.test);
+  out.push(`| Вариант ответа | Что это меняет |${withTests ? ' Тест, если так |' : ''}`);
+  out.push(`| :--- | :--- |${withTests ? ' :--- |' : ''}`);
+  for (const o of q.options) out.push(`| ${cell(o.label)} | ${cell(o.consequence)} |${withTests ? ` ${cell(o.test ?? '')} |` : ''}`);
   out.push('');
   if (q.recommended) {
     out.push(`**Рекомендация агента:** ${q.recommended.label}${q.recommended.reason ? ` — ${q.recommended.reason}` : ''}`);
@@ -175,17 +176,33 @@ export function renderMarkdown(report: Report): string {
       report.verdict.fixFirst.slice(0, 5).forEach((x, i) => out.push(`${i + 1}. ${x.text} (${x.findingId})`));
       out.push('');
     }
-    const blockers = report.questions.filter((q) => q.blocking && !q.answer).slice(0, 5);
+    const blockers = report.questions.filter((q) => q.blocking && !q.answer);
     if (blockers.length > 0) {
-      out.push('Вопросы, без ответа на которые нельзя начинать:');
+      out.push(`Вопросы, без ответа на которые нельзя начинать (${blockers.length}; первые три — здесь, все — в разделе 5):`);
       out.push('');
-      for (const q of blockers) {
-        out.push(`- **${q.id}, ${q.addressee}.** ${q.text}${q.scenario ? ` Ситуация: ${q.scenario}` : ''}${q.recommended ? ` Рекомендация агента: ${q.recommended.label}.` : ''}`);
+      for (const q of blockers.slice(0, 3)) {
+        out.push(`**${q.id} · ${q.addressee}.** ${q.text}`);
+        out.push('');
+        if (q.scenario) out.push(`- Ситуация: ${q.scenario}`);
+        q.options.forEach((o, i) => out.push(`- Вариант ${i + 1}: ${o.label} → ${o.consequence}`));
+        if (q.recommended) out.push(`- Рекомендация агента: ${q.recommended.label}${q.recommended.reason ? ` — ${q.recommended.reason}` : ''}`);
+        out.push('');
       }
-      out.push('');
     }
   }
-
+  if (report.answersApplied?.before) {
+    const b = report.answersApplied.before;
+    out.push('### Что изменили ответы автора');
+    out.push('');
+    out.push('| | До ответов | После ответов |');
+    out.push('| :--- | :---: | :---: |');
+    out.push(`| Ответов учтено | — | ${report.answersApplied.count} |`);
+    out.push(`| Открытых замечаний | ${b.findings} | ${s.findings} |`);
+    out.push(`| Критичных | ${b.critical} | ${s.bySeverity.critical} |`);
+    out.push(`| Существенных | ${b.major} | ${s.bySeverity.major} |`);
+    out.push(`| Итог | ${b.headline} | ${report.verdict.headline} |`);
+    out.push('');
+  }
   out.push('## 1. Паспорт прогона');
   out.push('');
   out.push('| Параметр | Значение |');
@@ -297,7 +314,7 @@ export function renderMarkdown(report: Report): string {
 
   const tcs = report.testCases ?? [];
   if (tcs.length > 0) {
-    const kind = { boundary: 'граница', counterexample: 'противоречие', acceptance: 'приёмка из документа' } as const;
+    const kind = { boundary: 'граница', counterexample: 'противоречие', acceptance: 'приёмка из документа', decision: 'по ответу автора' } as const;
     const missing = tcs.filter((t) => !t.coveredByAcceptance).length;
     out.push('### Черновик тест-кейсов');
     out.push('');

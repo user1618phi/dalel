@@ -8,6 +8,8 @@ export interface LlmRequest {
   system: string;
   user: string;
   maxTokens?: number;
+  /** false — plain text answer (used only by the single-prompt baseline). */
+  json?: boolean;
 }
 
 export interface LlmResponse {
@@ -108,7 +110,7 @@ function geminiClient(apiKey: string, model: string, baseUrl: string): LlmClient
           system_instruction: { parts: [{ text: req.system }] },
           contents: [{ role: 'user', parts: [{ text: req.user }] }],
           // No maxOutputTokens: models differ in their ceiling, and a value above it is rejected; the default is the model's own maximum.
-          generationConfig: { temperature: 0, responseMimeType: 'application/json', ...(req.maxTokens ? { maxOutputTokens: req.maxTokens } : {}) },
+          generationConfig: { temperature: 0, ...(req.json === false ? {} : { responseMimeType: 'application/json' }), ...(req.maxTokens ? { maxOutputTokens: req.maxTokens } : {}) },
         },
       );
       const parts = pick(data, 'candidates', 0, 'content', 'parts');
@@ -131,7 +133,7 @@ function openAiClient(provider: string, baseUrl: string, apiKey: string | undefi
         {
           model,
           temperature: 0,
-          response_format: { type: 'json_object' },
+          ...(req.json === false ? {} : { response_format: { type: 'json_object' } }),
           messages: [
             { role: 'system', content: req.system },
             { role: 'user', content: req.user },
@@ -243,7 +245,12 @@ export class LlmCache {
     private dir: string | null,
     private enabled = true,
   ) {
-    if (this.dir && this.enabled) mkdirSync(this.dir, { recursive: true });
+    try {
+      if (this.dir && this.enabled) mkdirSync(this.dir, { recursive: true });
+    } catch {
+      // A read-only working directory (a container, a mounted volume) only means there is no cache.
+      this.enabled = false;
+    }
   }
   private file(key: string): string {
     return join(this.dir ?? '.', `${key}.json`);

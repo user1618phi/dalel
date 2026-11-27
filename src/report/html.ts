@@ -576,7 +576,7 @@ ${scroll('Чек-лист ревью', `<table class="trace"><thead><tr><th>пу
 function renderTestCases(ctx: Ctx): string {
   const cases = ctx.report.testCases ?? [];
   if (cases.length === 0) return '';
-  const kind = { boundary: 'граница', counterexample: 'противоречие', acceptance: 'приёмка из документа' } as const;
+  const kind = { boundary: 'граница', counterexample: 'противоречие', acceptance: 'приёмка из документа', decision: 'по ответу автора' } as const;
   const rows = cases
     .map(
       (t) =>

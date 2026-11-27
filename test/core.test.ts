@@ -134,6 +134,17 @@ function fakeClient(log: string[]): LlmClient {
             : [],
         });
       }
+      if (req.system.includes('Этап: повторный взгляд')) {
+        log.push('sweep');
+        expect(req.user).toContain('Уже найденные замечания');
+        return reply({
+          findings: [
+            { criterion: 'set_complete', severity: 'major', title: 'Не сказано, что видит клиент до первого сохранения порога', explanation: 'Экран показывает поле порога, но начальное значение не задано.', quotes: ['На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить».'], counterexample: null, recommendation: 'Описать начальное состояние экрана.' },
+            { criterion: 'set_consistent', severity: 'major', title: 'Повтор уже найденного', explanation: 'То же самое.', quotes: ['На карту приходится максимум один такой push за календарный месяц.'], counterexample: null, recommendation: '' },
+          ],
+          trace: [],
+        });
+      }
       if (req.system.includes('Этап: пропуски в наборе')) {
         log.push('gaps');
         expect(req.user).toContain('Линзы предметной области');
@@ -199,8 +210,8 @@ function fakeClient(log: string[]): LlmClient {
               why: 'Клиент получит лишнее уведомление или не получит нужное.',
               findingIds: [conflict],
               options: [
-                { label: 'Да', consequence: 'Убрать ограничение из Ф-3.' },
-                { label: 'Нет', consequence: 'Уточнить Ф-4.' },
+                { label: 'Да', consequence: 'Убрать ограничение из Ф-3.', test: 'Дано порог 60 000 ₸ после смены. Когда расходы достигли 60 000 ₸. Тогда отправлен второй push.' },
+                { label: 'Нет', consequence: 'Уточнить Ф-4.', test: 'Дано порог 60 000 ₸ после смены. Когда расходы достигли 60 000 ₸. Тогда push не отправлен.' },
               ],
               scenario: 'Порог 50 000 ₸ достигнут 10-го числа, 15-го порог изменён на 60 000 ₸, 20-го расходы достигли 60 000 ₸.',
               recommended: { option: 2, reason: 'Ф-3 прямо ограничивает число уведомлений.' },
@@ -234,7 +245,13 @@ describe('конвейер с моделью', () => {
     const { report } = await check(CASE, { client: fakeClient(log), cacheDir: null, now: new Date('2026-11-27T12:00:00Z') });
     expect(log).toContain('set');
     expect(log).toContain('gaps');
+    expect(log.filter((x) => x === 'gaps')).toHaveLength(2);
+    expect(log).toContain('sweep');
     expect(log).toContain('opponent');
+    // The second look adds what was missing and does not re-add what the first passes already reported.
+    const swept = report.findings.filter((f) => f.stage === 'sweep');
+    expect(swept.map((f) => f.title)).toEqual(['Не сказано, что видит клиент до первого сохранения порога']);
+    expect(new Set(report.findings.map((f) => f.stage))).toEqual(new Set(['rules', 'analyze', 'consistency', 'sweep']));
     expect(log).toContain('clarify');
     expect(report.passport.mode).toBe('rules+llm');
     expect(report.passport.date).toBe('2026-11-27T12:00:00.000Z');
@@ -297,6 +314,8 @@ describe('конвейер с моделью', () => {
     const second = await check(CASE, { client: fakeClient(log), cacheDir: null, answerEntries: [{ ...entries[0]!, id: 'Q-99' }] });
     expect(log).toContain('answers');
     expect(second.report.answersApplied).toMatchObject({ count: 1, resolved: 1 });
+    expect(second.report.answersApplied?.before?.critical).toBe(first.report.summary.bySeverity.critical);
+    expect(renderMarkdown(second.report)).toContain('### Что изменили ответы автора');
     const resolved = second.report.findings.find((f) => f.status === 'resolved');
     expect(resolved?.resolution?.proposedText).toContain('не более одного push');
     expect(second.report.summary.bySeverity.critical).toBe(first.report.summary.bySeverity.critical - 1);
@@ -479,12 +498,16 @@ describe('CLI', () => {
   it('одной командой пишет отчёт по пути из аргумента', () => {
     const dir = mkdtempSync(join(tmpdir(), 'dalel-cli-'));
     const out = join(dir, 'nested', 'report.md');
-    const res = run([CASE, out, '--no-llm', '--formats', 'json,sarif', '--questions', join(dir, 'q.md')]);
+    const res = run([CASE, out, '--no-llm', '--formats', 'json,sarif,csv', '--questions', join(dir, 'q.md')]);
     expect(res.status, res.stderr).toBe(0);
     expect(readFileSync(out, 'utf8')).toContain('## 1. Паспорт прогона');
     expect((JSON.parse(readFileSync(join(dir, 'nested', 'report.json'), 'utf8')) as { schema: string }).schema).toBe('dalel.report/1');
     expect((JSON.parse(readFileSync(join(dir, 'nested', 'report.sarif'), 'utf8')) as { version: string }).version).toBe('2.1.0');
     expect(readFileSync(join(dir, 'q.md'), 'utf8')).toContain('**Ответ:**');
+    const csv = readFileSync(join(dir, 'nested', 'report.csv'), 'utf8');
+    expect(csv.charCodeAt(0)).toBe(0xfeff);
+    expect(csv.split('\r\n')[0]).toContain('"id";"severity";"status"');
+    expect(csv).toContain('"A-001"');
   });
 
   it('на битом файле пишет диагностический отчёт и возвращает код 2', () => {

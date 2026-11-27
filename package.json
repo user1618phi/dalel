@@ -12,6 +12,7 @@
     "dalel": "node bin/dalel.mjs",
     "eval": "node bin/dalel.mjs eval",
     "coverage": "node bin/dalel.mjs coverage",
+    "serve": "node bin/dalel.mjs serve",
     "mcp": "tsx src/mcp/server.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

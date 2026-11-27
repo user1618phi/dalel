@@ -17,6 +17,7 @@ import {
   ClarifySchema,
   GAPS_SYSTEM,
   OPPONENT_SYSTEM,
+  SWEEP_SYSTEM,
   OpponentSchema,
   PROMPT_HASH,
   SET_SYSTEM,
@@ -46,6 +47,7 @@ import {
   SET_CRITERIA,
   type Severity,
   type SourceDoc,
+  type Stage,
   type TraceRow,
   type Verdict,
 } from './types.js';
@@ -64,7 +66,7 @@ export interface CheckOptions {
   packs?: string[];
   maxQuestions?: number;
   /** Lets the eval harness run only the set-level stage to keep the number of model calls small. */
-  skipStages?: ('analyze' | 'gaps' | 'clarify')[];
+  skipStages?: ('analyze' | 'gaps' | 'sweep' | 'clarify')[];
   /** Restrict the per-requirement stage to these kinds (the eval harness checks acceptance criteria only). */
   analyzeKinds?: ReqKind[];
   /** Mask card numbers, IIN, phones and e-mails in the text sent to the model. Default: true. */
@@ -340,7 +342,7 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
   progress('правила без модели');
   const ruled = runRules(doc, blocks, reqs, packs);
   diagnostics.push(...ruled.diagnostics);
-  const drafts: Draft[] = ruled.findings.map((f: RuleFinding) => ({ ...f, status: f.questionSeed ? 'question' : 'confirmed' }));
+  const drafts: Draft[] = ruled.findings.map((f: RuleFinding) => ({ ...f, stage: 'rules', status: f.questionSeed ? 'question' : 'confirmed' }));
   const rejected: Draft[] = [];
   let droppedUnverified = 0;
   let traceRaw: { requirementId: string; api: string[]; acceptance: string[] }[] = [];
@@ -400,6 +402,7 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
             if (criterion === 'singular') continue;
             llmDrafts.push({
               source: 'llm',
+              stage: 'analyze',
               scope: 'requirement',
               criterion,
               standardRef: CRITERION_REF[criterion],
@@ -420,11 +423,19 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
 
     // --- set-level analysis: consistency, then gaps ---
     const setStages = [
-      { name: 'согласованность набора', system: SET_SYSTEM, extra: '' },
-      ...(opts.skipStages?.includes('gaps') ? [] : [{ name: 'пропуски в наборе', system: GAPS_SYSTEM, extra: `\n\nЛинзы предметной области:\n${lenses.map((l) => `- ${l}`).join('\n') || '- нет'}` }]),
+      { name: 'согласованность набора', system: SET_SYSTEM, extra: '', tag: 'consistency' as Stage },
+      // Two passes with different halves of the lens list: one long list makes a model skim it.
+      ...(opts.skipStages?.includes('gaps')
+        ? []
+        : [0, 1].map((half) => ({
+            name: `пропуски в наборе, проход ${half + 1}`,
+            system: GAPS_SYSTEM,
+            tag: 'gaps' as Stage,
+            extra: `\n\nЛинзы предметной области:\n${lenses.filter((_, i) => i % 2 === half).map((l) => `- ${l}`).join('\n') || '- нет'}`,
+          }))),
     ];
     progress(`проверка набора требований моделью: ${setStages.length} запр.`);
-    await mapLimit(setStages, 2, async (stage) => {
+    await mapLimit(setStages, 3, async (stage) => {
       try {
         const res = await completeJson(client, cache, usage, {
           stage: stage.name,
@@ -455,6 +466,7 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
           const requirementIds = [...new Set([...evidence.map((e) => e.requirementId), ...expectations.map((x) => x.requirementId)].filter((x): x is string => Boolean(x)))];
           llmDrafts.push({
             source: 'llm',
+            stage: stage.tag,
             scope: 'set',
             criterion,
             standardRef: CRITERION_REF[criterion],
@@ -490,6 +502,52 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
       const dupOfKept = kept.some((k) => sameTopic(k.criterion, d.criterion) && (subset(lines, evidenceLines(k)) || k.title === d.title));
       if (dupOfKept) continue;
       kept.push(d);
+    }
+
+    // --- second look: what is still missing from the list ---
+    if (llmUsed && !opts.skipStages?.includes('sweep')) {
+      progress('повторный взгляд моделью');
+      try {
+        const found = [...ruled.findings.map((f) => `- [стр. ${f.evidence[0]?.lineStart ?? '—'}] ${f.title}`), ...kept.map((d) => `- [стр. ${d.evidence[0]?.lineStart ?? '—'}] ${d.title}`)].join('\n');
+        const res = await completeJson(client, cache, usage, {
+          stage: 'повторный взгляд',
+          system: SWEEP_SYSTEM,
+          user: outgoing(`${docText}\n\nСписок пунктов:\n${unitList(reqs)}\n\nУже найденные замечания (не повторять):\n${found}`),
+          schema: SetSchema,
+        });
+        for (const f of res.findings.slice(0, 10)) {
+          if (toSeverity(f.severity, 'major') === 'minor') continue;
+          const evidence: Evidence[] = [];
+          for (const q of f.quotes) {
+            const e = verifier.verify(q);
+            if (e && !evidence.some((x) => x.lineStart === e.lineStart && x.quote === e.quote)) evidence.push(e);
+            else if (!e) droppedUnverified++;
+          }
+          if (evidence.length === 0) continue;
+          const criterion = toCriterion(f.criterion, 'set');
+          const lines = evidenceLines({ evidence });
+          const duplicate =
+            kept.some((k) => sameTopic(k.criterion, criterion) && (subset(lines, evidenceLines(k)) || k.title === f.title)) ||
+            ruled.findings.some((rf, i) => !rf.questionSeed && sameTopic(rf.criterion, criterion) && subset(lines, ruleLines[i] ?? new Set()));
+          if (duplicate) continue;
+          kept.push({
+            source: 'llm',
+            stage: 'sweep',
+            scope: 'set',
+            criterion,
+            standardRef: CRITERION_REF[criterion],
+            severity: toSeverity(f.severity, 'major'),
+            title: f.title,
+            explanation: f.explanation,
+            recommendation: f.recommendation,
+            requirementIds: [...new Set(evidence.map((e) => e.requirementId).filter((x): x is string => Boolean(x)))],
+            evidence,
+            status: 'confirmed',
+          });
+        }
+      } catch (e) {
+        diagnostics.push({ level: 'warning', code: 'llm_stage_failed', message: `Этап «повторный взгляд» не выполнен: ${e instanceof Error ? e.message : String(e)}`, hint: 'Отчёт построен без повторного прохода.' });
+      }
     }
 
     // --- opponent ---
@@ -640,7 +698,7 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
           why: q.why,
           findingIds: ids,
           ...(rc ? { rootCauseId: rc.id } : {}),
-          options: q.options,
+          options: q.options.map((o) => ({ label: o.label, consequence: o.consequence, ...(o.test ? { test: o.test } : {}) })),
           defaultAssumption: q.defaultAssumption,
           blocking: q.blocking,
           risk: { level, kind, note: q.risk?.note ?? '' },
@@ -688,6 +746,12 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
       });
   }
   const answered = questions.filter((q) => answers[q.id]);
+  const beforeAnswers = {
+    findings: findings.length,
+    critical: findings.filter((f) => f.severity === 'critical').length,
+    major: findings.filter((f) => f.severity === 'major').length,
+    headline: computeVerdict(findings, questions, fixFirst, llmUsed).headline,
+  };
   if (answered.length > 0) {
     for (const q of answered) q.answer = answers[q.id] ?? '';
     let resolved = 0;
@@ -721,7 +785,7 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
     } else {
       diagnostics.push({ level: 'info', code: 'note', message: 'Ответы автора записаны в отчёт. Без модели находки не пересматриваются автоматически.' });
     }
-    answersApplied = { count: answered.length, resolved, ...(opts.answersFile ? { file: opts.answersFile } : {}) };
+    answersApplied = { count: answered.length, resolved, ...(opts.answersFile ? { file: opts.answersFile } : {}), before: beforeAnswers };
   }
 
   // --- traceability ---
@@ -778,7 +842,7 @@ export async function check(path: string, opts: CheckOptions): Promise<CheckResu
     verdict,
     diagnostics,
     ...(checklist.length > 0 ? { checklist } : {}),
-    testCases: deriveTestCases(reqs, findings),
+    testCases: deriveTestCases(reqs, findings, questions),
     ...(answersApplied ? { answersApplied } : {}),
   };
   if (droppedUnverified > 0) {
