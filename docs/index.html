@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dalel — проверка требований</title>
+<meta name="description" content="Агент статической проверки технических заданий: каждое замечание подтверждено цитатой, каждое противоречие — сценарием с числами.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300..700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>/* Design core kit 0.2.0 · акцент 255°.
+   Rules in short: one idea and one primary button per screen; lots of empty space, little text; no cards, shadows or gradients:
+   structure comes from lines, the .ruler and space; headings large and light, broken by sense with <br>; labels, numbers and statuses
+   in .label (monospace, lowercase); accent on the main word and on what needs attention, at most three times per screen;
+   corners 18 / 13 / 10 px; blur only on floating panels (.panel); animate only transform and opacity; no emoji. */
+/* Medeo is used when it is available; otherwise the fallback pair from Google Fonts. For Medeo inside the file: design kit --embed-fonts */
+
+/* Core tokens of the personal style. Product-specific colour comes from `design color` or `design palette --css`
+   and overrides the colour block below. Works as plain CSS; the @theme block connects it to Tailwind v4. */
+
+:root {
+  /* colour: neutral base, blue 255 as the placeholder accent */
+  --bg: oklch(98.3% 0.002 90);
+  --raise: oklch(100% 0 0);
+  --fg: oklch(19% 0.003 90);
+  --mut: oklch(44% 0.004 90);
+  --faint: oklch(70% 0.004 90);
+  --line: oklch(19% 0.003 90 / 0.12);
+  --tick: oklch(19% 0.003 90 / 0.34);
+  --glass: oklch(98.3% 0.002 90 / 0.6);
+  --acc: oklch(54% 0.2 262);
+  --acc-text: oklch(52% 0.2 262);
+  --btn: var(--fg);
+  --btn-text: var(--bg);
+  --ok: oklch(64% 0.121 165);
+  --warn: oklch(80% 0.149 80);
+  --bad: oklch(55% 0.2 25);
+  --info: oklch(52% 0.132 250);
+
+  /* type */
+  --font-sans: "Medeo Sans", "Inter Tight", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Medeo Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --font-heading: var(--font-mono);
+  --text-label: 12.5px;
+  --text-body: 16px;
+  --text-lead: 18px;
+  --text-title: clamp(26px, 3.4vw, 40px);
+  --text-display: clamp(42px, 8.8vw, 128px);
+  --weight-heading: 380;
+  --tracking-heading: -0.03em;
+  --leading-heading: 1;
+
+  /* shape */
+  --radius-container: 18px;
+  --radius-control: 13px;
+  --radius-small: 10px;
+  --border: 1px;
+
+  /* space: 4px base */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+
+  /* motion */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-soft: cubic-bezier(0.22, 1.16, 0.36, 1);
+  --ease-screen: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-press: 110ms;
+  --dur-spring: 560ms;
+  --dur-enter: 900ms;
+  --dur-screen: 520ms;
+  --press-scale: 0.93;
+  --hover-scale: 1.045;
+  --blur: blur(16px) saturate(1.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  --bg: oklch(15% 0.002 90);
+  --raise: oklch(18.5% 0.002 90);
+  --fg: oklch(95% 0.002 90);
+  --mut: oklch(74% 0.003 90);
+  --faint: oklch(44% 0.003 90);
+  --line: oklch(95% 0.002 90 / 0.14);
+  --tick: oklch(95% 0.002 90 / 0.34);
+  --glass: oklch(15% 0.002 90 / 0.55);
+  --acc: oklch(76% 0.15 262);
+  --acc-text: oklch(78% 0.14 262);
+  --ok: oklch(70% 0.121 165);
+  --warn: oklch(80% 0.149 80);
+  --bad: oklch(70% 0.15 25);
+  --info: oklch(70% 0.132 250);
+}
+}
+:root[data-theme="dark"] {
+  --bg: oklch(15% 0.002 90);
+  --raise: oklch(18.5% 0.002 90);
+  --fg: oklch(95% 0.002 90);
+  --mut: oklch(74% 0.003 90);
+  --faint: oklch(44% 0.003 90);
+  --line: oklch(95% 0.002 90 / 0.14);
+  --tick: oklch(95% 0.002 90 / 0.34);
+  --glass: oklch(15% 0.002 90 / 0.55);
+  --acc: oklch(76% 0.15 262);
+  --acc-text: oklch(78% 0.14 262);
+  --ok: oklch(70% 0.121 165);
+  --warn: oklch(80% 0.149 80);
+  --bad: oklch(70% 0.15 25);
+  --info: oklch(70% 0.132 250);
+}
+
+/* the ruler motif: use as a divider */
+.ruler {
+  height: 14px;
+  background:
+    repeating-linear-gradient(90deg, var(--tick) 0 1px, transparent 1px 40px) 0 100% / 100% 11px no-repeat,
+    repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 8px) 0 100% / 100% 5px no-repeat;
+}
+
+/* the label voice */
+.label {
+  font: 400 var(--text-label) / 1.45 var(--font-mono);
+  color: var(--mut);
+  text-transform: lowercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; animation: none !important; }
+}
+
+/* product colour */
+/* accent hue 255°, chroma mid */
+:root {
+  --bg: oklch(98.5% 0.004 255);
+  --raise: oklch(100% 0 0);
+  --fg: oklch(21% 0.008 255);
+  --mut: oklch(46% 0.008 255);
+  --faint: oklch(70% 0.006 255);
+  --line: oklch(21% 0.008 255 / 0.12);
+  --acc: oklch(56% 0.148 255);
+  --acc-text: oklch(55% 0.145 255);
+  --btn: oklch(56% 0.148 255);
+  --btn-text: oklch(100% 0 0);
+  --ok: oklch(64% 0.121 165);
+  --warn: oklch(80% 0.149 80);
+  --bad: oklch(55% 0.2 25);
+  --info: oklch(52% 0.096 222);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  --bg: oklch(15% 0.004 255);
+  --raise: oklch(18.5% 0.005 255);
+  --fg: oklch(94% 0.004 255);
+  --mut: oklch(74% 0.006 255);
+  --faint: oklch(44% 0.006 255);
+  --line: oklch(94% 0.004 255 / 0.14);
+  --acc: oklch(56% 0.148 255);
+  --acc-text: oklch(78% 0.091 255);
+  --btn: oklch(56% 0.148 255);
+  --btn-text: oklch(100% 0 0);
+  --ok: oklch(70% 0.121 165);
+  --warn: oklch(80% 0.149 80);
+  --bad: oklch(70% 0.15 25);
+  --info: oklch(70% 0.096 222);
+}
+}
+:root[data-theme="dark"] {
+  --bg: oklch(15% 0.004 255);
+  --raise: oklch(18.5% 0.005 255);
+  --fg: oklch(94% 0.004 255);
+  --mut: oklch(74% 0.006 255);
+  --faint: oklch(44% 0.006 255);
+  --line: oklch(94% 0.004 255 / 0.14);
+  --acc: oklch(56% 0.148 255);
+  --acc-text: oklch(78% 0.091 255);
+  --btn: oklch(56% 0.148 255);
+  --btn-text: oklch(100% 0 0);
+  --ok: oklch(70% 0.121 165);
+  --warn: oklch(80% 0.149 80);
+  --bad: oklch(70% 0.15 25);
+  --info: oklch(70% 0.096 222);
+}
+
+/* Base elements of the style for an artifact or a standalone page. Tokens come from core/tokens.css; `design kit` joins them. */
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--bg); color: var(--fg); font: 400 var(--text-body) / 1.55 var(--font-sans); font-optical-sizing: auto; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; }
+body { margin: 0; min-height: 100vh; background: var(--bg); }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px); }
+section { padding: clamp(48px, 8vw, 112px) 0; }
+
+/* headings: large, light, broken by sense with <br>; never bold */
+h1, h2 { margin: 0; font-family: var(--font-heading); font-weight: var(--weight-heading); line-height: var(--leading-heading); letter-spacing: var(--tracking-heading); }
+h1 { font-size: var(--text-display); letter-spacing: -0.05em; }
+h2 { font-size: var(--text-title); }
+h3 { margin: 0; font: 500 var(--text-body) / 1.4 var(--font-sans); }
+p { margin: 0; max-width: 62ch; }
+.lead { font-size: var(--text-lead); color: var(--mut); }
+.acc { color: var(--acc-text); }
+a { color: inherit; text-decoration-color: var(--tick); text-underline-offset: 3px; }
+code, pre, kbd { font-family: var(--font-mono); font-size: 0.86em; }
+pre { margin: 0; padding: var(--space-4); border: var(--border) solid var(--line); border-radius: var(--radius-control); overflow: auto; }
+hr { margin: 0; border: 0; border-top: var(--border) solid var(--line); }
+:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; border-radius: var(--radius-small); }
+
+/* one primary button per screen; the rest are outlined */
+.btn { appearance: none; display: inline-flex; align-items: center; gap: var(--space-2); padding: 13px 17px; border: var(--border) solid var(--line); border-radius: var(--radius-control); background: transparent; color: var(--fg); font: 400 14.5px / 1 var(--font-sans); white-space: nowrap; cursor: pointer; text-decoration: none; transition: transform var(--dur-spring) var(--ease-spring), border-color 0.2s; }
+.btn:hover { border-color: var(--tick); }
+@media (hover: hover) { .btn:hover { transform: scale(var(--hover-scale)); } }
+.btn:active { transform: scale(var(--press-scale)); transition-duration: var(--dur-press); }
+.btn.primary { background: var(--btn); color: var(--btn-text); border-color: transparent; }
+.field { min-width: 0; padding: 12px 14px; border: var(--border) solid var(--line); border-radius: var(--radius-control); background: transparent; color: var(--fg); font: 400 14.5px / 1.4 var(--font-sans); }
+.field:focus { outline: none; border-color: var(--fg); }
+.field::placeholder { color: var(--faint); }
+
+/* structure comes from lines and space: rows instead of cards */
+.rows > * { padding: var(--space-4) 0; border-top: var(--border) solid var(--line); }
+.rows > *:last-child { border-bottom: var(--border) solid var(--line); }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+th { font: 400 var(--text-label) / 1.45 var(--font-mono); color: var(--mut); text-transform: lowercase; text-align: left; }
+th, td { padding: 10px var(--space-4) 10px 0; border-bottom: var(--border) solid var(--line); vertical-align: top; }
+
+/* square status mark, always next to a word */
+.mark { display: inline-flex; align-items: center; gap: 7px; font: 400 var(--text-label) / 1 var(--font-mono); text-transform: lowercase; color: var(--mut); white-space: nowrap; }
+.mark::before { content: ""; width: 8px; height: 8px; background: var(--fg); flex: none; }
+.mark.ok::before { background: var(--ok); }
+.mark.warn::before { background: var(--warn); }
+.mark.bad::before { background: var(--bad); }
+.mark.info::before { background: var(--info); }
+
+/* blur only on floating panels: navigation, bottom bar, sheet, toast */
+.panel { border: var(--border) solid var(--line); border-radius: var(--radius-container); background: var(--glass); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); }
+
+
+html { color-scheme: light dark; }
+h1 { font-size: clamp(30px, 8.7vw, 96px); margin: var(--space-3) 0 var(--space-8); }
+h1 .acc { white-space: nowrap; }
+h2 { margin: var(--space-2) 0 var(--space-6); max-width: 32ch; text-wrap: balance; }
+h2:has(+ .lead) { margin-bottom: var(--space-3); }
+h2 + .lead { color: var(--fg); margin-bottom: var(--space-6); }
+/* .wrap sets the side gutters with a shorthand, which would otherwise wipe the vertical rhythm of sections. */
+section.wrap { padding-block: clamp(40px, 6vw, 88px); }
+section.wrap.hero { padding-block: clamp(40px, 6vw, 72px) var(--space-8); }
+.hero + section.wrap { padding-top: var(--space-8); }
+.ruler { margin-bottom: var(--space-8); }
+.mark { margin-top: var(--space-4); }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-6); margin-top: var(--space-8); }
+.actions a:not(.btn) { display: inline-block; padding-block: 12px; font-size: 14.5px; transition: transform var(--dur-spring) var(--ease-spring); }
+.actions a:not(.btn):active { transform: scale(var(--press-scale)); transition-duration: var(--dur-press); }
+@media (max-width: 640px) { .actions { gap: var(--space-2) var(--space-6); } .actions .btn { flex: 1 0 100%; justify-content: center; } }
+.counts { display: grid; grid-template-columns: repeat(4, auto); justify-content: start; gap: var(--space-2) var(--space-12); margin-top: var(--space-8); }
+.counts .n { display: block; font: var(--weight-heading) var(--text-title) / 1 var(--font-mono); letter-spacing: var(--tracking-heading); font-variant-numeric: tabular-nums; }
+.counts .label { display: block; margin-top: var(--space-1); }
+@media (max-width: 640px) { .counts { grid-template-columns: repeat(2, 1fr); row-gap: var(--space-6); } }
+.pair { display: grid; grid-template-columns: minmax(140px, 220px) 1fr; gap: var(--space-2) var(--space-8); align-items: baseline; }
+@media (max-width: 640px) { .pair { grid-template-columns: 1fr; } }
+.pair p { max-width: 68ch; }
+.note { color: var(--mut); margin-top: var(--space-6); }
+pre { margin-top: var(--space-4); white-space: pre-wrap; overflow-wrap: anywhere; }
+footer.wrap { padding-block: var(--space-12) var(--space-16); }
+footer time { white-space: nowrap; }
+</style>
+</head>
+<body>
+<main>
+<section class="wrap hero">
+  <p class="label">dalel · агент проверки требований</p>
+  <h1>Каждое замечание<br><span class="acc">с доказательством</span></h1>
+  <p class="lead">Агент читает техническое задание до начала разработки. Замечание подтверждается дословной цитатой, противоречие — сценарием с числами, пропуск — вопросом с вариантами ответа.</p>
+  <div class="actions"><a class="btn primary" href="report.html">Открыть отчёт по ТЗ кейса</a><a href="https://github.com/user1618phi/dalel">Репозиторий</a><a href="presentation.pdf">Презентация</a></div>
+</section>
+
+<section class="wrap">
+  <div class="ruler"></div>
+  <p class="label">результат на выданном документе</p>
+  <p class="mark bad">не готово</p>
+  <h2>По этому документу нельзя начинать разработку и тестирование</h2>
+  <div class="counts">
+    <div><span class="n">58</span><span class="label">требований</span></div>
+    <div><span class="n">80</span><span class="label">замечаний</span></div>
+    <div><span class="n">6</span><span class="label">критичных</span></div>
+    <div><span class="n">12</span><span class="label">вопросов автору</span></div>
+  </div>
+  <p class="label note">claude-opus-5-5 · 17,3 мин · обращений к модели: 12</p>
+</section>
+
+<section class="wrap">
+  <p class="label">противоречие · критичное</p>
+  <h2>Противоречие —<br>это сценарий с числами</h2>
+  <p class="lead">Критерий приёмки относит покупку к месяцу проведения, а Ф-2 — к месяцу совершения</p>
+  <div class="rows">
+<div class="pair"><span class="label">дано</span><p>Активная карта KZT, расходы за январь 10 000 ₸, за февраль 0 ₸.</p></div>
+<div class="pair"><span class="label">когда</span><p>31 января в 23:58 по Алматы прошла авторизация покупки на 4 000 ₸. 1 февраля в 00:03 по Алматы покупка проведена (клиринг).</p></div>
+<div class="pair"><span class="label">по Ф-2</span><p>Январь: 10 000 + 4 000 = 14 000 ₸, февраль остаётся 0 ₸</p></div>
+<div class="pair"><span class="label">по критерию приёмки</span><p>Февраль: 0 + 4 000 = 4 000 ₸, январь остаётся 10 000 ₸</p></div>
+<div class="pair"><span class="label">конфликт</span><p>Одна операция попадает в разные месяцы, поэтому расходы, а значит и момент достижения порога, получаются разными.</p></div>
+  </div>
+  <p class="note">Сценарий — готовый тест-кейс.</p>
+</section>
+
+<section class="wrap">
+  <p class="label">вопрос автору · владелец продукта</p>
+  <h2>Пропуск —<br>это вопрос с вариантами</h2>
+  <p class="lead">По какой метке времени операция попадает в расходы и относится к месяцу в часовом поясе Алматы (UTC+5)?</p>
+  <div class="rows">
+<div class="pair"><span class="label">ситуация</span><p>Покупку на 4 000 ₸ совершили 31 января в 23:58, а провели 1 февраля в 00:03 по Алматы. По Ф-2 она январская, по критерию приёмки — февральская.</p></div>
+<div class="pair"><span class="label">вариант 1</span><p>По авторизации: расходы растут при авторизации, месяц — по дате авторизации</p></div>
+<div class="pair"><span class="label">вариант 2</span><p>По проведению: расходы растут при проведении, месяц — по дате проведения</p></div>
+<div class="pair"><span class="label">вариант 3</span><p>Учёт по событию проведения, месяц — по дате авторизации</p></div>
+<div class="pair"><span class="label">рекомендация агента</span><p>Вариант 1. Цель «узнать о достижении личного бюджета в момент покупки» достижима только при учёте авторизации, а Ф-2 или критерий приёмки придётся исправлять при любом ответе.</p></div>
+  </div>
+  <p class="note">Автор отвечает в файле, в терминале или в браузере; агент снимает замечания, задаёт уточнение и пересчитывает вердикт.</p>
+</section>
+<section class="wrap">
+  <p class="label">как устроено</p>
+  <h2>Модель предлагает, код проверяет</h2>
+  <div class="rows">
+<div class="pair"><span class="label">загрузчик · нарезчик</span><p>PDF, DOCX, Markdown, HTML, текст. Битый файл даёт диагностику, а не аварию. Нарезка по структуре документа одинакова при каждом прогоне.</p></div>
+<div class="pair"><span class="label">линтер</span><p>Правила без модели: формулировки, шаблон, единицы, таблицы API, пропуски финтеха, границы без приёмки. Работает без ключа и сети.</p></div>
+<div class="pair"><span class="label">аналитик · ревизор · искатель пропусков</span><p>Модель проверяет каждый пункт, ищет противоречия и примеряет линзы предметной области. Данные карт перед этим маскируются.</p></div>
+<div class="pair"><span class="label">вольный ревьюер</span><p>Свободный разбор без ограничений формата; каждое его замечание переносится в отчёт только с цитатой из документа.</p></div>
+<div class="pair"><span class="label">оппонент · арбитр</span><p>Оппонент защищает автора и пытается опровергнуть замечание; спор решает арбитр по тексту документа.</p></div>
+<div class="pair"><span class="label">интервьюер · тест-дизайнер</span><p>Коренные причины, вопросы с ситуацией и тестом, граничные значения и сценарии для тестировщика.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <p class="label">измерено</p>
+  <h2>Агент проверяет и самого себя</h2>
+  <div class="rows">
+<div class="pair"><span class="label">внесённые дефекты</span><p>Известные дефекты 24 классов вносятся в чистые ТЗ. Слой правил находит 50 из 50 (100 %).</p></div>
+<div class="pair"><span class="label">полнота по каталогу</span><p>Независимая модель-судья: критичных 5 (+0) из 5, существенных 26 (+5) из 32; один запрос к той же модели без агента — существенных 26 (+5) из 32. В скобках — найдено частично.</p></div>
+<div class="pair"><span class="label">точность</span><p>Каждое из 80 замечаний проверила другая модель: верно 45, частично 33, неверно 2.</p></div>
+<div class="pair"><span class="label">стабильность</span><p>Три прогона без кэша: критичных замечаний 7, в каждом прогоне найдено 5. Нарезка и правила совпадают полностью.</p></div>
+<div class="pair"><span class="label">оппонент и арбитр</span><p>Отклонено замечаний модели: 14. Отброшено без подтверждённой цитаты: 0.</p></div>
+  </div>
+  <p class="note">Судьи — тоже модели, сверки эвристические: это порядок величин, а не точное место. Методика и оговорки — в папке docs репозитория.</p>
+</section>
+
+<section class="wrap">
+  <p class="label">запуск</p>
+  <h2>Одна команда</h2>
+  <pre>npm run check -- docs/requirements.md reports/requirements.report.md</pre>
+  <p class="note">Перед первым запуском — <code>npm ci</code>. Тот же агент работает в браузере на своей машине (<code>npm run serve</code>), в контейнере Docker, в шаге GitHub Actions, как инструмент MCP и как скилл для агентов-разработчиков: <code>npx skills add user1618phi/dalel</code>.</p>
+</section>
+</main>
+<footer class="wrap"><p class="label">dalel 0.1.0 · mit · bcc-hub x mnu fintech hackathon · отчёт сформирован <time>2026-11-27</time></p></footer>
+</body>
+</html>
